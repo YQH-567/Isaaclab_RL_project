@@ -1,0 +1,13 @@
+{
+    "python-envs.defaultEnvManager": "ms-python.python:conda",
+    "python-envs.defaultPackageManager": "ms-python.python:conda",
+    "ros.distro": "jazzy",
+    "python.analysis.extraPaths": [
+        "./IsaacLab/source/isaaclab",
+        "./IsaacLab/source/isaaclab_assets"
+    ],
+    "urdf-visualizer.packages": {
+        "robots": "/home/l/isaac_space_01/my_robot_rl/assets/robots",
+        "grapper": "/home/l/isaac_space_01/my_robot_rl/assets/grapper",
+    }
+}
