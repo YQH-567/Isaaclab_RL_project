@@ -97,7 +97,7 @@ $$
 **超调量 $M_p$：**
 
 $$
-M_p=\frac{\max_t\left[s\left(q(t)-q_{\mathrm{final}}\right)\right]_+}{|\Delta q|}\times100\%,\quad s={sign}(\Delta q)
+M_p=\frac{\max_t\left[s\left(q(t)-q_{\mathrm{final}}\right)\right]_+}{|\Delta q|}\times100\%,\quad   s={sign}(\Delta q)
 $$
 
 
@@ -129,7 +129,7 @@ $$
 
 从安全的小振幅、低频率开始。比较目标与实际关节位置、速度，关注：
 
-- 最大跟踪误差：$\max |q_d-q|$。
+- 最大跟踪误差： $\max |q_d-q|$
 - 均方根跟踪误差：$\mathrm{RMSE}=\sqrt{\frac1N\sum_{k=1}^N(q_{d,k}-q_k)^2}$。
 - 相位滞后、幅值衰减、速度峰值、力矩饱和。
 - 频率增加时跟踪能力如何变化。
