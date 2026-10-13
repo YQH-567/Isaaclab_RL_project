@@ -54,12 +54,55 @@ my_robot_rl/
     }//核心是这里的路径配置，不然点击URDF预览是看不到的，同时自己理解一下这里的配置原理
 }
 ```
- - 使用vscode的URDF
-    LM3 + LMG90、Reach 任务、ManagerBasedRLEnv、skrl PPO。
-    先说明为什么选 ManagerBased，以及这个任务如何评估成功。
 
 ### 3.2 机器人 Asset 与物理模型验证
-    URDF/USD、本体坐标系、关节轴与限位、质量惯量、collision mesh、gripper mimic/drive、actuator、关节驱动参数。
+首先明白哪些配置应该在哪设置呢？：
+| 参数类别 | 推荐存放位置 | 举例 |
+|---|---|---|
+| 机器人几何结构 | USD | Link、Visual Mesh、Collision Mesh |
+| 关节物理结构 | USD | Joint Type、Axis、Body0/Body1、关节局部坐标系 |
+| 质量与惯量 | USD | Mass、Center of Mass、Inertia |
+| 机械关节限位 | 优先 USD | Lower/Upper Joint Limit |
+| Articulation Root API | USD | 哪个节点是 Articulation Root |
+| 基础物理求解参数 | USD 保存基准值，Python 可覆盖 | Solver Iterations、Sleep Threshold |
+| 驱动与控制模型 | lm3.py | ImplicitActuatorCfg、PD 参数 |
+| 初始关节姿态 | lm3.py | init_state.joint_pos |
+| 任务中的机器人位置 | 环境 SceneCfg | prim_path、环境中的相对位置 |
+| 强化学习动作空间 | 环境 ActionsCfg | JointPositionActionCfg |
+| 奖励和终止条件 | 环境 RewardsCfg / TerminationsCfg | 距离奖励、成功判定 |
+| 域随机化 | 环境 EventCfg | 质量、摩擦、初始状态随机化 |
+#### 1. Articulation Root 检查
+URDF从solidworks导出并且按照3.1放在对应的位置，（预览拓展能打开查看验证的话那路径什么的应该没有很大问题）,然后启动空模板`./isaaclab.sh -s`,然后左上角点击`importer`导入URDF文件，记得选固定,看图的选择：
+
+<p>
+<img src="./docx/isaaclab的URDF导入选择小tips.png" width=500>
+</p>
+
+- ① 点击 Play
+先让 PhysX 初始化机械臂物理系统。
+
+
+- ② 打开 Physics Inspector
+找到 LM3 对应的 Articulation 并刷新。
+
+
+- ③ 检查六个自由度
+应当能够看到 joint_1 到 joint_6 六个可动关节，并读取相应关节状态。
+这里还需要注意的是。如果Physics Inspector没有刷新出来，看看你是不是有root_joint,root_joint有没有`Articulation Root`,如下图，特别注意右边的参数
+
+<p>
+<img src="./docx/isaac中的Physics Inspector检查.png" width=600>
+</p>
+
+#### 2. 六个关节及其类型
+
+#### 3. 关节限位与运动方向
+
+#### 4. 底座固定与重力测试
+
+#### 5. 已发现的问题及解决方法
+
+#### 6. 验证结果
 
 ### 3.3 ManagerBased 环境构建
     SceneCfg、ActionsCfg、ObservationsCfg、RewardsCfg、TerminationsCfg、EventCfg，重点解释各部分的数据 shape 和交互
