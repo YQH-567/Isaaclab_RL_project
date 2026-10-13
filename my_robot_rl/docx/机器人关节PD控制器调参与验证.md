@@ -100,6 +100,7 @@ $$
 M_p=\frac{\max_t\left[s\left(q(t)-q_{\mathrm{final}}\right)\right]_+}{|\Delta q|}\times100\%,\quad s=\operatorname{sign}(\Delta q)
 $$
 
+
 其中 $[x]_+=\max(0,x)$。下降阶跃也应考虑方向，不能直接用“最大位置减目标位置”的公式。
 
 **调节时间 $t_s$：**
