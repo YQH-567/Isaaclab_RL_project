@@ -97,7 +97,7 @@ $$
 **超调量 $M_p$：**
 
 $$
-M_p=\frac{\max_t\left[s\left(q(t)-q_{\mathrm{final}}\right)\right]_+}{|\Delta q|}\times100\%,\quad s=\operatorname{sign}(\Delta q)
+M_p=\frac{\max_t\left[s\left(q(t)-q_{\mathrm{final}}\right)\right]_+}{|\Delta q|}\times100\%,\quad s={sign}(\Delta q)
 $$
 
 
