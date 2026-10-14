@@ -5,3 +5,4 @@ semantic            语义
 mesh merge tool         网格合并工具 
 robot assembler         机器人装配机
 amplitude           振幅
+inertia         惯性

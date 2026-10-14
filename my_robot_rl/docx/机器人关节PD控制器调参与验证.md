@@ -212,3 +212,15 @@ CSV 建议记录：`time, joint_name, q_target_rad, q_actual_rad, qd_target_rad_
 - NVIDIA Isaac Sim 5.1 — [Gain Tuner Extension](https://docs.isaacsim.omniverse.nvidia.com/5.1.0/robot_setup/ext_isaacsim_robot_setup_gain_tuner.html)
 - NVIDIA Isaac Sim — [Joint Drive Gain Tuning Tutorial](https://docs.isaacsim.omniverse.nvidia.com/latest/robot_setup_tutorials/joint_tuning.html)（注意不同版本的 UI 可能不同）
 - Isaac Lab — [Writing an Asset Configuration](https://isaac-sim.github.io/IsaacLab/main/source/how-to/write_articulation_cfg.html)
+
+
+
+## 8. LM3调试表：
+|Joint|Step|Kp|Kd|Overshoot|Settling Time 调节时间|阻尼|
+|-|-|-|-|-|-|-|
+|joint1|0→10°|100|2.0|2.0%|0.17s|欠阻尼|
+|joint2|0→-10°|150|5.0|2.4%|0.16s|欠阻尼|
+|joint3|0→10°|85.0|1.0|2.0%|0.16s|欠阻尼|
+|joint4|0→10°|20.0|0.5|%|0.10s|过阻尼|
+|joint5|0→10°|20.0|0.5|%|0.15s|过阻尼|
+|joint6|0→10°|10.0|0.1|%|0.10s|过阻尼|
