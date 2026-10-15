@@ -6,23 +6,18 @@ from isaaclab.assets import ArticulationCfg
 from isaaclab.actuators import ImplicitActuatorCfg
 
 
-# 找到项目根目录
+# my_robot_rl 项目根目录
 PROJECT_ROOT = Path(__file__).resolve().parents[4]
 
-USD_PATH = (
+LM3_USD_PATH = (
     PROJECT_ROOT
-    / "assets/robots/lm3/usd/lebai_lm3.usd"
+    / "assets/robots/lm3/usd/lebai_lm3_PD_1.usd"
 )
 
 
 LEBAI_LM3_CFG = ArticulationCfg(
     spawn=sim_utils.UsdFileCfg(
-        usd_path=str(USD_PATH),
-        articulation_props=sim_utils.ArticulationRootPropertiesCfg(
-            enabled_self_collisions=False,
-            solver_position_iteration_count=32,
-            solver_velocity_iteration_count=1,
-        ),
+        usd_path=str(LM3_USD_PATH),
     ),
 
     init_state=ArticulationCfg.InitialStateCfg(
@@ -35,10 +30,10 @@ LEBAI_LM3_CFG = ArticulationCfg(
     actuators={
         "arm": ImplicitActuatorCfg(
             joint_names_expr=["joint_[1-6]"],
-
-            # 第一版先继承 USD 中的 Drive 增益
             stiffness=None,
             damping=None,
+            effort_limit_sim=None,
+            velocity_limit_sim=None,
         ),
     },
 )

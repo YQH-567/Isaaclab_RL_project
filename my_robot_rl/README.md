@@ -139,7 +139,11 @@ URDF从solidworks导出并且按照3.1放在对应的位置，（预览拓展能
 
 - 正弦响应调节 
 
+调节参数选择及其结果，比如joint_6，其他结果也差不多，2轴有点相位滞后，其他轴图片放docx里面：
 
+<p>
+<img src="./docx/isaaclab_joint_6的正弦响应图.png" width=500>
+</p>
 
 - 验证全部关节的流程：
 
@@ -213,14 +217,9 @@ URDF从solidworks导出并且按照3.1放在对应的位置，（预览拓展能
 0.3s:
 目标3
 ```
-    所以动态跟踪能力重要。
 
-#### 3. 关节限位与运动方向
+所以动态跟踪能力重要。
 
-#### 4. 底座固定与重力测试
-#### 5. 已发现的问题及解决方法
-
-#### 6. 验证结果
 
 ### 3.3 ManagerBased 环境构建
     SceneCfg、ActionsCfg、ObservationsCfg、RewardsCfg、TerminationsCfg、EventCfg，重点解释各部分的数据 shape 和交互
