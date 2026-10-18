@@ -6,3 +6,7 @@
     robot assembler         机器人装配机
     amplitude           振幅
     inertia         惯性
+    special variable            特殊变量
+    function variable           函数变量
+    indices         指数
+    detach          分离

@@ -140,6 +140,11 @@ URDF从solidworks导出并且按照3.1放在对应的位置，（预览拓展能
 - 正弦响应调节 
 
 调节参数选择及其结果，比如joint_6，其他结果也差不多，2轴有点相位滞后，其他轴图片放docx里面：
+    
+    Amplitude=2%、Offset=0°、Period=4s、Duration=12s。
+    观察 Command Joint 实际生成的角度范围，确认没有超出预期。
+    对比 Observed Joint 是否跟上目标，记录相位滞后和幅值误差。
+    低频跟踪稳定后，再尝试 Period=2s，保持其他参数不变。
 
 <p>
 <img src="./docx/isaaclab_joint_6的正弦响应图.png" width=500>
@@ -221,7 +226,59 @@ URDF从solidworks导出并且按照3.1放在对应的位置，（预览拓展能
 所以动态跟踪能力重要。
 
 
-### 3.3 ManagerBased 环境构建
+### 3.3 cfg文件测试和articulation设置测试   ManagerBased 环境构建
+
+ 1. 设置好PD之后在scripts/tests下写测试文件 三个实验
+ 实验代码： `/home/l/isaac_space_01/my_robot_rl/scripts/tests/test_lebai_lm3_control.py`
+ 增加你对怎么读取轴状态理解的代码： `/home/l/isaac_space_01/my_robot_rl/scripts/tests/test_lebai_lm3_articulation.py` 这也是后面这三个实验的重要基础，如果理解这个，这三个实验会做得很快
+ -  实验一：保持 LM3 默认姿态 -> 打开就保持一开始的默认状态
+ -  实验二： 只让关节 1 转动 1.57 rad，转个90度 -> 可以更改下标查看每个轴能不能转90度，同时理解怎么单独控制一个轴，500step之后重置的理解
+ -  实验三：记录关节位置误差  -> 检验你的PD是否合理的重要步骤，也是检验自己模型有没有问题的一步 
+
+ 2. 实验3,记录误差以及分析误差原因，调整参数
+
+ - 参考第一版的PD，得到的1轴和3轴的误差图，都不是渐渐逼近
+    [PD第一版参数和第二版参数在文件下面](./docx/机器人关节PD控制器调参与验证.md)
+
+    正常状态的误差图：
+    <p>
+    <img src="./docx/joint_5的error图片合格版本.png" width =400>
+    </p>
+
+    因为PD参数欠阻尼调节过于振荡，以至于1轴error图片如图：
+    <p>
+    <img src="./docx/joint_1的error图片不合格版本.png" width =400>
+    </p>
+
+    因为最大力矩限制太小导致无法到达目标点，甚至往上抬不起来后落地了都的3轴error图片：
+    <p>
+    <img src="./docx/joint_3的error图片不合格版本.png" width =400>
+    </p>
+
+    最终经过我的调整，然后全部轴一起运动后的误差图(2轴其实不是刚开始的最大受力状态的话，曲线会更好，比如从-40运动到-50)，所以说不是每个都能调得很好的曲线的，而且最终目的是RL训练，所以基本合格就可以：
+    <p>
+    <img src="./docx/joint_123456的error图片合格版本.png" width = 400>
+    </p>
+
+<span style="color:red; background:yellow;">
+对于为什么曲线有问题的分析，整个调整过程自己估计也会清楚，对于力矩限制这个问题，虽然说很大概率电机的供应商也会给出最大力矩限制，但是整个估算和设置过程，不仅可以解决选电机力矩的过程，也是推进对于机器人动力学建模的过程，动力学建模的公式已经我这里设置力矩限制的来源（乐白没给电机参数，官网ai出来的不可信）
+</span>
+
+#### 这个分析很重要！！，有空还是可以看看这个文档的 ####
+    
+[力矩限制怎么计算，电机怎么选力矩范围](./docx/LM3关节驱动力矩理论估算与URDF验证.md)
+
+- 动力学重要公式,别忘力转动惯量啥啥啥的：
+
+刚体机械臂动力学可写为：
+
+$$
+\boldsymbol\tau=M(\boldsymbol q)\ddot{\boldsymbol q}
++C(\boldsymbol q,\dot{\boldsymbol q})\dot{\boldsymbol q}
++\boldsymbol g(\boldsymbol q)+\boldsymbol\tau_f+\boldsymbol\tau_{\mathrm{ext}}
+$$
+
+
     SceneCfg、ActionsCfg、ObservationsCfg、RewardsCfg、TerminationsCfg、EventCfg，重点解释各部分的数据 shape 和交互
 
 ### 3.4 PPO YAML 与环境的连接
