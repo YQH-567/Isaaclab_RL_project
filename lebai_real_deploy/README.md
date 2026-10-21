@@ -280,6 +280,8 @@ $$ q_{\mathrm{target}}=q_{\mathrm{default}}+0.5a$$
 
 运行`python scripts/test_adapter.py`,预期 q_rel 接近零，零动作转换得到默认关节角
 
+
+
 注意：依赖清单必须经过独立环境验证。仅仅安装成功，不代表模型输入、机器人接口和动作定义已经匹配。
 
 ## 7. 推荐的开发与验证顺序

@@ -1,7 +1,7 @@
 
 
 # 日志
-*.log
+*.logs
 
 # 大文件 / 生成物
 IsaacLab/
@@ -17,3 +17,6 @@ g1_learning/*.log
 **/.neptune/
 docker/artifacts/
 *.tmp
+
+#为经验证的
+*.未经验证
