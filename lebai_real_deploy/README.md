@@ -173,7 +173,7 @@ python -m pip check
 
 随后分别测试模型加载、SDK 导入和真实机器人连接。
 
-- 模型加载，在python环境里测试：
+- 模型加载，在python环境里测试，笔记本和台式机都要测：
 
 ```python
 import torch
@@ -206,7 +206,13 @@ Action: tensor([[ 0.1723, -1.0820,  4.7594, -1.7930, -0.9335, -1.6624]])
 ## 6. 逐步测试和怎么写代码流程
 
 1. 实机链接测试`scripts/test_connection.py`,实现 SDK 只读状态测试
+2. 进入 `test_policy_offline.py` 阶段
 
+这个阶段主要完成三件事：
+- 从 checkpoints/ 加载 TorchScript 策略。
+- 输入 25 维测试 Observation，检查是否得到六维 Action。
+- 检查模型输出是否包含 NaN、Inf，并验证多次推理结果一致。
+3. 
 
 注意：依赖清单必须经过独立环境验证。仅仅安装成功，不代表模型输入、机器人接口和动作定义已经匹配。
 
