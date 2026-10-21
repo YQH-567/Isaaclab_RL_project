@@ -4,7 +4,8 @@
     "ros.distro": "jazzy",
     "python.analysis.extraPaths": [
         "./IsaacLab/source/isaaclab",
-        "./IsaacLab/source/isaaclab_assets"
+        "./IsaacLab/source/isaaclab_assets",
+        "./my_robot_rl"
     ],
     "urdf-visualizer.packages": {
         "robots": "/home/l/isaac_space_01/my_robot_rl/assets/robots",

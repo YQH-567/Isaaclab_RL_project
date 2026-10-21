@@ -1,0 +1,19 @@
+
+
+# 日志
+*.log
+
+# 大文件 / 生成物
+IsaacLab/
+g1_learning/*.usd
+g1_learning/*.txt
+g1_learning/*.log
+
+# 已有的
+**/output/
+**/outputs/
+**/videos/
+**/wandb/
+**/.neptune/
+docker/artifacts/
+*.tmp

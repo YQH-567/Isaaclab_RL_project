@@ -10,3 +10,7 @@
     function variable           函数变量
     indices         指数
     detach          分离
+    manipulation        操纵
+    locomanipulation            运动控制  
+    locomotion          运动功能
+    override actions            覆盖动作

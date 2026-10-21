@@ -205,14 +205,80 @@ Action: tensor([[ 0.1723, -1.0820,  4.7594, -1.7930, -0.9335, -1.6624]])
 ```
 ## 6. 逐步测试和怎么写代码流程
 
-1. 实机链接测试`scripts/test_connection.py`,实现 SDK 只读状态测试
-2. 进入 `test_policy_offline.py` 阶段
+## 核心思路与理解 ##
+
+之前的 Reach 任务使用的是：
+$$o_t=[q_{\mathrm{rel}},\dot q_{\mathrm{rel}},p_{\mathrm{cmd}},Q_{\mathrm{cmd}},a_{t-1}]$$
+
+共 25 维：
+
+| 索引 | 内容 | 维度 |
+|---|---|---|
+| 0:6 | 相对默认位置的六轴关节角 | 6 |
+| 6:12 | 相对默认速度的六轴关节速度 | 6 |
+| 12:19 | 目标位置与四元数，根坐标系下 | 7 |
+| 19:25 | 上一次策略动作 | 6 |
+
+特别注意，pose_command 是训练环境的命令生成器提供的目标，并不是直接使用 SDK 返回的 TCP 位姿。
+
+- Observation Adapter：
+```bash
+        Lebai SDK 实机状态
+            +
+        目标位姿
+            +
+        上一时刻动作
+            ↓
+        25 维 Observation
+            ↓
+        TorchScript Actor
+```
+- Action Adapter：
+```bash
+    Actor 输出 6 维 Action
+        ↓
+    按 JointPositionActionCfg 缩放
+        ↓
+    默认关节位置偏移
+        ↓
+    关节目标位置
+        ↓
+    独立安全检查
+```
+这里必须保留训练时用的：
+```python
+    scale = 0.5
+    use_default_offset = True
+```
+
+## 实现步骤 ##
+
+### 1. 实机链接测试`scripts/test_connection.py`,实现 SDK 只读状态测试 ###
+### 2. 进入 `test_policy_offline.py` 阶段 ###
 
 这个阶段主要完成三件事：
 - 从 checkpoints/ 加载 TorchScript 策略。
 - 输入 25 维测试 Observation，检查是否得到六维 Action。
 - 检查模型输出是否包含 NaN、Inf，并验证多次推理结果一致。
-3. 
+### 3. 编写`adapter.py`文件测试 ###
+终于到 Sim2Real 的核心部分了。
+我们先实现最简单、也最容易验证的两部分：
+-  真实关节位置转换为 PPO Observation 中的 joint_pos_rel。
+-  PPO Action 转换为 Isaac Lab 定义的目标关节位置。
+
+这里需要理解两个公式
+
+Observation：
+$$ q_{\mathrm{rel}}=q_{\mathrm{real}}-q_{\mathrm{default}}$$
+它让神经网络知道当前关节相对于训练默认姿态偏离了多少。
+
+Action：
+$$ q_{\mathrm{target}}=q_{\mathrm{default}}+0.5a$$
+注意，a 是策略输出，不是目标关节角。代码当前仅适用于你训练时配置的 `JointPositionActionCfg(scale=0.5, use_default_offset=True)`，后续还要确认动作裁剪、关节名称顺序以及真实机器人运动限制。
+
+### 4. 再写一个不控制机械臂的测试保存到 `scripts/test_adapter.py` ###
+
+运行`python scripts/test_adapter.py`,预期 q_rel 接近零，零动作转换得到默认关节角
 
 注意：依赖清单必须经过独立环境验证。仅仅安装成功，不代表模型输入、机器人接口和动作定义已经匹配。
 

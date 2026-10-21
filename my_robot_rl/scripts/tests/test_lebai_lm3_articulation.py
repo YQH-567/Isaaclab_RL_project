@@ -167,13 +167,13 @@ def run_simulator(sim: sim_utils.SimulationContext, entities: dict[str, Articula
         # Increment counter
         count += 1
 
-"""
-write_joint_state_to_sim()：直接设置关节的仿真位置和速度状态，可以理解为瞬间设置到指定状态，并非正常的运动过程。
+        """
+        write_joint_state_to_sim()：直接设置关节的仿真位置和速度状态，可以理解为瞬间设置到指定状态，并非正常的运动过程。
 
-set_joint_position_target()：设置控制目标，配合 write_data_to_sim()、sim.step()，由配置好的关节驱动器与物理引擎使机械臂向目标运动。
+        set_joint_position_target()：设置控制目标，配合 write_data_to_sim()、sim.step()，由配置好的关节驱动器与物理引擎使机械臂向目标运动。
 
-还有一个重要细节：B 不保证机械臂一定能到达目标。是否到达取决于驱动器、关节限制、负载和其他物理条件。
-"""
+        还有一个重要细节：B 不保证机械臂一定能到达目标。是否到达取决于驱动器、关节限制、负载和其他物理条件。
+        """
         # Update buffers
         robot.update(sim_dt)
 

@@ -226,7 +226,7 @@ URDF从solidworks导出并且按照3.1放在对应的位置，（预览拓展能
 所以动态跟踪能力重要。
 
 
-### 3.3 cfg文件测试和articulation设置测试   ManagerBased 环境构建
+### 3.3 cfg文件测试和articulation设置测试  
 
  1. 设置好PD之后在scripts/tests下写测试文件 三个实验
  实验代码： `/home/l/isaac_space_01/my_robot_rl/scripts/tests/test_lebai_lm3_control.py`
@@ -279,14 +279,69 @@ $$
 $$
 
 
-    SceneCfg、ActionsCfg、ObservationsCfg、RewardsCfg、TerminationsCfg、EventCfg，重点解释各部分的数据 shape 和交互
+### 3.4 PPO YAML 与环境的连接  ManagerBased 环境构建,暂时以reach实验为例子
 
-### 3.4 PPO YAML 与环境的连接
+1. 记得本身自己`./isaaclab.sh -n`时的选项，是有manager的
+
+- 查看官方manager的经典案例，这里以Franka的Reach为例子，怎么写lebai 的reach
+
+    步骤 (1)  
+        把`/home/l/isaac_space_01/IsaacLab/source/isaaclab_tasks/isaaclab_tasks/manager_based/manipulation/reach`文件夹也复制到my_robot_rl对应的manager目录下，保留franka的就行，ur_10等其他的该删除就删除就好了，不用一下子看太多，同时也去看看官方的框架如何，方便以后任务的复用和结构设计
+
+    步骤（2）
+        更改注册文件，更改sb3_ppo_cfg.yaml和skrl_ppo_cfg.yaml里面的directory,不然找不到rollout在哪里：
+
+```yaml
+  experiment:
+    directory: "reach_lebai_lm3"
+    experiment_name: ""
+    write_interval: auto
+    checkpoint_interval: auto
+```
+
+
+2. 理解manager工作流修改乐白的`joint_pos_env_cfg.py`
+- 具体改哪里
+    其实就改`joint_pos_env_cfg.py`这个文件，其他manager都替你做好了，重点理解reward的权重怎么给出来的，欧式距离，tanh函数啥的，看我的代码详细注释：
+    [joint_pos_env_cfg.py的reward和末端执行器设置](./source/my_robot_rl/my_robot_rl/tasks/manager_based/reach/config/lebai_lm3/joint_pos_env_cfg.py)
+
+- manager帮你干的事情，也是不用怎么改的事情，当然要reach到的点的范围你需要根据机器人工作范围改
+
+    [不用改的部分，基本reach任务都需要的](./source/my_robot_rl/my_robot_rl/tasks/manager_based/reach/reach_env_cfg.py)
+
+- 一般可能出现的bug
+    
+    没有设置好机器人的初始位置，也就是`lebai_lm3.py`文件,自己去看看和官方对比
+    
+    传入参数到底是body还是joint
+
+
+3. 官方`train.py`和`play.py`怎么使用以及设置能输出成功率的`evaluate.py`
+
+```python
+# 暂时没空写训练脚本，就这样先用着吧
+python /home/l/isaac_space_01/my_robot_rl/scripts/skrl/train.py --task=   num_envs= (任务不复杂，我的16G5060TI可以跑8192绰绰有余)
+
+python /home/l/isaac_space_01/my_robot_rl/scripts/skrl/play.py --task=  --checkpoint=  --num_envs=  
+
+python /home/l/isaac_space_01/my_robot_rl/scripts/skrl/evaluate.py --task= --checkpoint= --num_envs=  
+#这里注意看输出，会有成功率的统计，当然你需要看人家怎么设置的
+```
+<span style="color:red; background:yellow;">
     Gym 注册 → 环境配置 → skrl agent 配置 → train.py → rollout → PPO 更新 → checkpoint。
-    解释 Actor、Critic、GAE、clip 和学习率，结合 YAML 给出实际配置。
+</span>
+
+    
+解释 Actor、Critic、GAE、clip 和学习率，结合 YAML 给出实际配置。
 
 ### 3.5 实验结果与诊断
+    
     TensorBoard、末端到目标点距离、成功率、episode length、训练配置与 checkpoint 回放。
 
-### 3.6 抓取与 Sim2Real 扩展
+### 3.6 抓取与 Sim2Real 扩展,怎么生成笔记本部署需要的checkpoint,初始训练和实机部署的checkpoint的区别
+
+
     在 Reach 稳定以后加入抓取任务，再根据进度增加随机化与 Residual RL。
+
+查看显卡状态：
+`watch -n 1 nvidia-smi`
