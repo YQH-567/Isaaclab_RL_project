@@ -227,6 +227,7 @@ def main():
         start_time = time.monotonic()
         last_report = 0.0
         stable_count = 0
+        max_abs_joint_speed = 0.0
 
         while True:
             elapsed = time.monotonic() - start_time
@@ -240,6 +241,11 @@ def main():
             )
             speeds = six_floats(
                 data["actual_joint_speed"], "actual_joint_speed"
+            )
+
+            max_abs_joint_speed = max(
+            max_abs_joint_speed,
+            abs(speeds[index]),
             )
 
             error = abs(target[index] - actual[index])
@@ -270,8 +276,19 @@ def main():
             if stable_count >= 3:
                 print("\n[PASS] 目标位置已达到，关节速度已降低。")
                 print("Final joints (rad):", actual)
+
+
+                print(
+                    f"Maximum observed J{args.joint} speed: "
+                    f"{max_abs_joint_speed:.4f} rad/s"
+                )
+                print(
+                    f"Commanded velocity parameter: "
+                    f"{args.velocity:.4f} rad/s"
+                )
                 return 0
 
+            
             time.sleep(0.05)
 
     except KeyboardInterrupt:
