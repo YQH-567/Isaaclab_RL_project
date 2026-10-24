@@ -345,3 +345,66 @@ python /home/l/isaac_space_01/my_robot_rl/scripts/skrl/evaluate.py --task= --che
 
 查看显卡状态：
 `watch -n 1 nvidia-smi`
+
+### 3.7 加爪实现流程
+
+#### 1. 导入流程与3.1 差不多，因为mimic导致的坑如下：####
+
+- 先是urdf速度设置全部为1不让其为0,然后导入后，`先不开启physics inspector` 
+- 然后设置到`gripper_r_joint1`的PD参数不让它为0,同时设置`gripper_l_joint1`的mimic参考轴，因为导入进去就它参考轴是没有正确识别的，
+- 还有`gripper_l_joint2`和`gripper_l_finger`和`gripper_l_joint1`的转动limited也没被正确识别出来需要设置好，这些都设置好检查之后再打开physics inspector查看是否有问题
+
+    <span style="color:red; background:yellow;">
+    中途没设置好就打开physics inspector都会出现上面的问题
+    </span>
+
+目前动力轴gripper_r_joint1的PD参数如下：
+
+`stiffiness=2  damping=0.05`过阻尼，正弦和阶跃响应正常
+
+
+
+最后的稳定版本usd:`/home/l/isaac_space_01/my_robot_rl/assets/grapper/lmg90/usd/lmg90_gripper_stable.usd`
+
+#### 2. 补充lmg90的mimic对应关系：####
+
+乐白官方 FAQ 直接给出了你现在仿真模型需要的关系：
+
+$$\theta = \frac{\pi \cdot amplitude}{300}$$
+然后六个关节满足：
+$$
+\begin{aligned}
+q_{r1}&=\theta\\
+q_{r2}&=-\theta\\
+q_{rf}&=-\theta\\
+q_{l1}&=\theta\\
+q_{l2}&=-\theta\\
+q_{lf}&=-\theta
+\end{aligned}
+$$
+amplitude=100 对应主关节 π/3 rad = 60°
+
+#### 3. 注意审查URDF有无漏洞（本次加爪本体制作时间长的具体原因）####
+
+    <span style="color:red; background:yellow;">
+    没检查URDF的惯性缺失！导致点开play夹爪四处乱跑！！
+    </span>
+
+```xml
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="0.30"/>
+      <inertia
+        ixx="0.001" ixy="0.0" ixz="0.0"
+        iyy="0.001" iyz="0.0"
+        izz="0.001"/>
+    </inertial>
+```
+- 不过好在也解决了这个问题，驱动轴关节误差如下，没有什么大问题：
+
+<p>
+<img src="./docx/加爪驱动关节误差（已合格）.png" width=400>
+</p>
+
+[测试的代码在这里:test_lmg90_gripper_articulation.py](./scripts/tests/test_lmg90_gripper_articulation.py)
+

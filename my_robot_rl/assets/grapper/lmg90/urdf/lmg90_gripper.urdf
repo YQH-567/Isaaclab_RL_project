@@ -130,7 +130,7 @@
     <child link="gripper_r_link2"/>
     <origin rpy="1.570796327 0 0" xyz="0.0115 0.0 0.1056"/>
     <axis xyz="0 0 1"/>
-    <limit effort="5" lower="-10.0" upper="10.0" velocity="0"/>
+    <limit effort="5" lower="-10.0" upper="10.0" velocity="1"/>
     <mimic joint="gripper_r_joint1" multiplier="-1" offset="0"/>
   </joint>
   <joint name="gripper_r_joint_finger" type="revolute">
@@ -138,7 +138,7 @@
     <child link="gripper_r_link_finger"/>
     <origin rpy="3.141592653589793 0 3.141592653589793" xyz="0.0 0.053 0.0"/>
     <axis xyz="0 0 1"/>
-    <limit effort="5" lower="-10" upper="10" velocity="0"/>
+    <limit effort="5" lower="-10" upper="10" velocity="1"/>
     <mimic joint="gripper_r_joint1" multiplier="-1" offset="0"/>
   </joint>
   <joint name="gripper_l_joint1" type="revolute">
@@ -146,7 +146,7 @@
     <child link="gripper_l_link1"/>
     <origin rpy="1.570796327 0.0 0.0" xyz="-0.025 0.0 0.0856"/>
     <axis xyz="0 0 1"/>
-    <limit effort="5" lower="-10.0" upper="10.0" velocity="0"/>
+    <limit effort="5" lower="-10.0" upper="10.0" velocity="1"/>
     <mimic joint="gripper_r_joint1" multiplier="1" offset="0"/>
   </joint>
   <joint name="gripper_l_joint2" type="revolute">
@@ -154,7 +154,7 @@
     <child link="gripper_l_link2"/>
     <origin rpy="1.570796327 0 3.141592653589793" xyz="-0.0115 0.0 0.1056"/>
     <axis xyz="0 0 1"/>
-    <limit effort="5" lower="-10.0" upper="10.0" velocity="0"/>
+    <limit effort="5" lower="-10.0" upper="10.0" velocity="1"/>
     <mimic joint="gripper_l_joint1" multiplier="-1" offset="0"/>
   </joint>
   <joint name="gripper_l_joint_finger" type="revolute">
@@ -162,7 +162,7 @@
     <child link="gripper_l_link_finger"/>
     <origin rpy="3.141592653589793 0 3.141592653589793" xyz="0.0 0.053 0.0"/>
     <axis xyz="0 0 1"/>
-    <limit effort="5" lower="-10" upper="10" velocity="0"/>
+    <limit effort="5" lower="-10" upper="10" velocity="1"/>
     <mimic joint="gripper_l_joint1" multiplier="-1" offset="0"/>
   </joint>
   <joint name="gripper_joint_tip" type="fixed">

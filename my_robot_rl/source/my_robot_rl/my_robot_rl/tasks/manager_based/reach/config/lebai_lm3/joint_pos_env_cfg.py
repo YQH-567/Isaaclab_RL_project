@@ -45,6 +45,8 @@ class lebai_lm3ReachEnvCfg(ReachEnvCfg):
         self.rewards.end_effector_position_tracking_fine_grained.params["asset_cfg"].body_names = ["link_6"]
         self.rewards.end_effector_orientation_tracking.params["asset_cfg"].body_names = ["link_6"]
 
+   
+
         #我在这里说明通用的这个reach_env_cfg.py设置的主要奖励和惩罚：
         """
         任务奖励或惩罚：
@@ -66,6 +68,9 @@ class lebai_lm3ReachEnvCfg(ReachEnvCfg):
         self.commands.ee_pose.body_name = "link_6"  #这里说明末端执行器是joint_6,因为我暂时不设置加爪，并且设置夹爪配置一般在 my_robot_rl/source/my_robot_rl/my_robot_rl/assets/lebai_lm3.py这里
         self.commands.ee_pose.ranges.pitch = (math.pi, math.pi)#这个的意思是设置为固定值，而不是俯仰角姿态随机，这里RPY中只有这个pitch是一定要自己设置的，因为是MISSING
 
+        print(f"chushiweizhi: {self.scene.robot.data.default_joint_pos[0]}" )
+        print(f"第一轴的初始位置： {self.scene.robot.data.joint_pos[0]}")
+        #print(f"查看手臂输出action: {env.action_manager.get_term("arm_action").raw_actions[0]}")     
 
 # @configclass
 # class FrankaReachEnvCfg_PLAY(FrankaReachEnvCfg):
