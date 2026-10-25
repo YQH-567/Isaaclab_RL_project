@@ -384,6 +384,11 @@ q_{lf}&=-\theta
 $$
 amplitude=100 对应主关节 π/3 rad = 60°
 
+lmg90单独显示图：
+<p>
+<img src="./docx/lmg90夹爪单独显示图.png" width=400>
+</p>
+
 #### 3. 注意审查URDF有无漏洞（本次加爪本体制作时间长的具体原因）####
 
     <span style="color:red; background:yellow;">
@@ -407,4 +412,18 @@ amplitude=100 对应主关节 π/3 rad = 60°
 </p>
 
 [测试的代码在这里:test_lmg90_gripper_articulation.py](./scripts/tests/test_lmg90_gripper_articulation.py)
+
+### 3.8 机械臂和夹爪怎么结合起来确认没有问题
+
+1. 另存之前的机械臂文件，然后把夹爪文件拖动进去
+2. 使用robot Assembler把两者结合起来
+3. 写测试文件测试机械臂的某个轴和夹爪的驱动轴，和之前差不多
+[测试机械臂和夹爪结合有没有问题的测试文件](./scripts/tests/test_lebai_lmg90_gripper.py)
+
+测试结果：这里测了3轴和夹爪驱动轴
+
+<p>
+<img src="./docx/机械臂和夹抓缝合后的测试误差图.png" width=400>
+</p>
+
 

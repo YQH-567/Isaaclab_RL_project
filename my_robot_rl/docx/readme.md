@@ -14,3 +14,9 @@
     locomanipulation            运动控制  
     locomotion          运动功能
     override actions            覆盖动作
+    natural frequency           固有频率
+    damping ratio           阻尼比
+    amplitude           振幅
+    differential            差分
+    scripted            剧本
+    Assembler           汇编器
