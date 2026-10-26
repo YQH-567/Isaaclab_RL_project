@@ -427,3 +427,66 @@ lmg90单独显示图：
 </p>
 
 
+### 3.9 机械臂IK验证轨迹与模型
+参考官网案例：https://isaac-sim.github.io/IsaacLab/main/source/how-to/run_diff_ik.html?
+
+参考官方文件：`./isaaclab.sh -p scripts/tutorials/05_controllers/run_diff_ik.py`
+
+自己写的微分IK文件：
+[对齐位姿显示微分IK](./source/my_robot_rl/my_robot_rl/tasks/manager_based/lift/config/lebai_lm3/run_diff_if_without_RL.py)
+
+1. Differential IK 控制链路。
+$$ x_{goal}
+\rightarrow
+\texttt{set\_command}
+\rightarrow
+(x_{ee},J,q)
+\rightarrow
+\texttt{compute}
+\rightarrow
+q_{des}
+\rightarrow
+\text{PD}
+\rightarrow
+\text{PhysX}
+\rightarrow
+新的(x_{ee},J,q)$$
+
+- 配置并创建 Differential IK controller。
+- 明确“我要控制哪个末端 frame”，设置 task-space 目标。
+- 每一步读取新的末端状态、Jacobian 和关节位置，重新 compute() 出新的关节目标，再交给关节 PD。
+- reset 时同时 reset 机器人状态、controller 和 command。
+
+#### 这几个去看我写在代码里面的详细注释 ####
+
+2. pose / position。
+3. absolute / relative command。
+4. Jacobian 的作用与数据维度。
+5. fixed-base 下 body_id - 1 的原因。
+6. compute() 输入输出。
+7. controller reset。
+
+<span style="color:red; background:yellow;">
+8. gripper_r_link_finger 作为 EE 导致姿态目标不可达的问题。
+
+- 改为 gripper_base_link 后目标正常可达。
+
+- PD 是底层 tracking 问题，不能解决 task-space 不可达问题。
+
+</span>
+
+
+
+
+
+
+
+    当前 IK MD 收尾、commit。
+    看一遍官方 lift_cube_sm.py，重点理解 state transition，不要急着照抄。
+    新建 scripted_lift_lm3.py，自己实现 PRE_GRASP → APPROACH → CLOSE → LIFT。
+    固定 cube 成功率稳定后，加 TRANSPORT → PLACE → OPEN。
+    把它整理成 scripted_pick_place_lm3.py。
+    去读官方 manager_based/manipulation/lift，自己迁移 LM3 + LMG90。
+    跑 PPO Lift。
+    随机化 cube 初始位置、质量、摩擦等。
+    部署到你旁边那台真实 LM3。

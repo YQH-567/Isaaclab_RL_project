@@ -8,7 +8,7 @@
         "./my_robot_rl"
     ],
     "urdf-visualizer.packages": {
-        "robots": "/home/yqh/isaaclab_deploy/Isaaclab_RL_project/my_robot_rl/assets/robots",
+        "robots": "/home/l/isaac_space_01/my_robot_rl/assets/robots",
         "grapper": "/home/l/isaac_space_01/my_robot_rl/assets/grapper",
     }
 }

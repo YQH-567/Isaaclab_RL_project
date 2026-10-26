@@ -3,6 +3,11 @@
 # 日志
 *.logs
 
+
+
+# vscode环境
+#*.vscode
+
 # 大文件 / 生成物
 IsaacLab/
 g1_learning/*.usd
