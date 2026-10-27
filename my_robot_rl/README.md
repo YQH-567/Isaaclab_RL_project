@@ -362,6 +362,7 @@ python /home/l/isaac_space_01/my_robot_rl/scripts/skrl/evaluate.py --task= --che
 
 `stiffiness=2  damping=0.05`过阻尼，正弦和阶跃响应正常
 
+- 还有一个很重要的设置是记得让不是驱动轴的`Natual Frequency = 0.0`,还有`Damping Ratio = 0`
 
 
 最后的稳定版本usd:`/home/l/isaac_space_01/my_robot_rl/assets/grapper/lmg90/usd/lmg90_gripper_stable.usd`
@@ -475,13 +476,20 @@ q_{des}
 
 </span>
 
+#### 这里展示一下[x, y, z, qw, qx, qy, qz]对齐的效果会如何：####
+
+<p>
+<img src="./docx/机械臂微分IK验证图.png" width=400>
+</p>
+
+### 3.10 新的 manipulation state machine 的起点
 
 
 
 
 
 
-    当前 IK MD 收尾、commit。
+    当前 IK MD 收尾、commit。  ->ok
     看一遍官方 lift_cube_sm.py，重点理解 state transition，不要急着照抄。
     新建 scripted_lift_lm3.py，自己实现 PRE_GRASP → APPROACH → CLOSE → LIFT。
     固定 cube 成功率稳定后，加 TRANSPORT → PLACE → OPEN。

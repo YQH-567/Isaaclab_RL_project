@@ -20,3 +20,6 @@
     differential            差分
     scripted            剧本
     Assembler           汇编器
+    state transition            状态转换
+    warp            编织
+    

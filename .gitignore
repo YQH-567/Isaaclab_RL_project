@@ -6,7 +6,7 @@
 
 
 # vscode环境
-#*.vscode
+*.vscode
 
 # 大文件 / 生成物
 IsaacLab/

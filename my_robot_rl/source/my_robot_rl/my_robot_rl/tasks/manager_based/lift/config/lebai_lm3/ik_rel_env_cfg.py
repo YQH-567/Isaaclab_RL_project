@@ -16,7 +16,7 @@ from isaaclab_assets.robots.franka import FRANKA_PANDA_HIGH_PD_CFG  # isort: ski
 
 
 @configclass
-class FrankaReachEnvCfg(joint_pos_env_cfg.FrankaReachEnvCfg):
+class FrankaCubeLiftEnvCfg(joint_pos_env_cfg.FrankaCubeLiftEnvCfg):
     def __post_init__(self):
         # post init of parent
         super().__post_init__()
@@ -37,7 +37,7 @@ class FrankaReachEnvCfg(joint_pos_env_cfg.FrankaReachEnvCfg):
 
 
 @configclass
-class FrankaReachEnvCfg_PLAY(FrankaReachEnvCfg):
+class FrankaCubeLiftEnvCfg_PLAY(FrankaCubeLiftEnvCfg):
     def __post_init__(self):
         # post init of parent
         super().__post_init__()
