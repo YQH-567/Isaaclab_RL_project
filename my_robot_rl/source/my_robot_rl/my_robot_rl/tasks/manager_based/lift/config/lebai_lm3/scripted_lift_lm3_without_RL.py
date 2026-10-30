@@ -162,6 +162,7 @@ def infer_state_machine(
             if sm_wait_time[tid] >= PickSmWaitTime.LIFT_OBJECT:
                 # move to next state and reset wait time
                 sm_state[tid] = PickSmState.DONE  #这里建议设置为DONE的状态，而不是还是在这个LIFT_OBJECT的状态
+                sm_wait_time[tid] = 0.0
     
     elif state == PickSmState.DONE:
         des_ee_pose[tid] = des_object_pose[tid]
@@ -294,7 +295,21 @@ def main():
         # run everything in inference mode
         with torch.inference_mode():
             # step environment
-            dones = env.step(actions)[-2]
+            dones = env.step(actions)[-2]   #是一个形状为 (num_envs,) 的布尔型张量
+
+            """
+            假设你跑了 32 个并行环境，dones 就会长这样：
+            tensor([False, False, True, False, ..., False])
+
+                False：代表这个环境还在正常运行。
+
+                True：代表这个环境“结束”了。
+
+            当 dones 里有任何一个 True 时，说明物理环境已经悄悄把那些失败的/超时的机械臂“瞬移”回起点了，
+            并把方块放回了原位。
+            所以，你必须用 dones.nonzero() 找出是哪几个环境重置了，然后把它们的状态机也强行打回 REST 状态。
+            如果不这么做，状态机就会以为机械臂还在抓东西，继续下发指令，导致仿真错乱。
+            """
 
             # observations
             # -- end-effector frame

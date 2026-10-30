@@ -42,7 +42,11 @@ class LebaiCubeLiftEnvCfg(joint_pos_env_cfg.LebaiCubeLiftEnvCfg):
             asset_name="robot",
             joint_names=["joint_[1-6]"],
             body_name="gripper_base_link",
-            controller=DifferentialIKControllerCfg(command_type="pose", use_relative_mode=False, ik_method="dls"),
+            controller=DifferentialIKControllerCfg(
+                command_type="pose", 
+                use_relative_mode=False,   #绝对模型下不能使用scale
+                ik_method="dls",
+                ik_params={"lambda_val": 0.01, "k_val": 1.0}),
             body_offset=DifferentialInverseKinematicsActionCfg.OffsetCfg(pos=[0.0, 0.0, 0.18]),# 这里测量过Lebai的距离是0.18m,用vscode预览测量的
         )
         # 2. 🔥 同步修改传感器的偏移

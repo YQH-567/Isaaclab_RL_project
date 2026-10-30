@@ -484,6 +484,107 @@ q_{des}
 
 ### 3.10 新的 manipulation state machine 的起点
 
+1. Lebai微分IK实现lift任务原因
+
+- IK可以验证机械臂本体和环境设置是否出现问题
+    
+    如果本身本体和环境就有问题，RL是怎么也训练不出来的
+
+- 模仿学习（Imitation Learning / Behavior Cloning）：
+
+    把 IK 状态机跑成百上千遍，录下每一帧的 (观测, 动作)。直接让神经网络去监督学习（比如 MSE Loss），让它去“模仿” IK 的动作。这叫专家示范。
+
+- 提供初始策略（Warm Start）：
+
+    先用 IK 的数据预训练一下神经网络的权重，然后再扔进 RL 里微调。这样 RL 就跳过了一开始的“瞎猫碰死耗子”阶段，收敛极快。
+
+- 课程学习（Curriculum Learning）：
+
+    一开始把奖励函数设计成“靠近 IK 算出来的轨迹就加分”，等 RL 学会了，再慢慢撤回这个辅助，让它自己探索。
+
+2. 实现微分IK的lift的过程
+
+    代码文件：
+    [实现的主要代码](./source/my_robot_rl/my_robot_rl/tasks/manager_based/lift/config/lebai_lm3/scripted_lift_lm3_without_RL.py)
+
+- 从main函数开始看，更改环境名字，并且查看环境配置的框架哪些地方需要更改
+    
+    [1]`my_robot_rl/source/my_robot_rl/my_robot_rl/tasks/manager_based/lift/config/lebai_lm3/__init__.py`: 这里注册gym
+
+    [2]`my_robot_rl/source/my_robot_rl/my_robot_rl/tasks/manager_based/lift/config/lebai_lm3/ik_abs_env_cfg.py`  这里给机械臂写IK配置：`LebaiCubeLiftEnvCfg`,这里特别注意末端执行器的这个0.18的距离
+
+    [3]`my_robot_rl/source/my_robot_rl/my_robot_rl/tasks/manager_based/lift/config/lebai_lm3/joint_pos_env_cfg.py`  这里是环境配置文件，同时RL也是通用的这个环境配置，包括小方块啥的: `LebaiCubeLiftEnvCfg`
+
+    [4]`my_robot_rl/source/my_robot_rl/my_robot_rl/tasks/manager_based/lift/lift_env_cfg.py` 这里是lift环境的一些通用配置，目标位置,方块位置范围等等也在这，RL也需要，`LiftEnvCfg`,`CurriculumCfg`,`TerminationsCfg`,`RewardsCfg`,`EventCfg`,……`ObjectTableSceneCfg`
+
+    [5] 写需要传入状态机数据创建状态机开始仿真
+
+- 状态机内部设置
+    
+    状态机内部设置理解，这里代码注释很详细，仔细查看主要代码
+
+3. 最终实现效果：
+
+<video src="./docx/IK_lift乐白效果.webm" controls width="600"></video>
+
+4. 怎么给状态机加状态
+
+代码文件：
+[给lift状态增加place放置和done的状态](./source/my_robot_rl/my_robot_rl/tasks/manager_based/lift/config/lebai_lm3/scripted_lift_and_place_lm3_without_RL.py)
+
+- 核心增加： 放置点坐标：
+```python
+# 在__init__函数：
+
+        # 🟢 在这里直接写入固定的放置点
+        # 暂时让末端在 (0.3, 0, 0.3)，姿态保持默认(单位四元数)
+        # Warp: (x, y, z, qx, qy, qz, qw)
+        # 初始化放置位姿
+        self.des_place_ee_pose = torch.zeros((self.num_envs, 7), device=self.device)
+        self.des_place_ee_pose[:, 6] = 1.0  # 确保四元数合法 (w=1)   这里只初始化这个des_place_ee_pose，在下面计算那里再设置具体数值再传到warp
+
+#在compute函数:
+
+        object_quat = object_pose[:, 3:] 
+        fixed_xyz = torch.tensor([0.3, -0.2, 0.1], device=self.device)
+        self.des_place_ee_pose[:, 0:3] = fixed_xyz
+        self.des_place_ee_pose[:, 3:] = object_quat
+
+        ……
+        # 4. 更新 warp
+        self.des_place_ee_pose_wp = wp.from_torch(self.des_place_ee_pose.contiguous(), wp.transform)
+```   
+- 增加状态机elif 
+
+    这里也看代码里面的详细注释
+
+- 增加之后的效果 ：
+
+<video src="./docx/IK_lift_place乐白效果.webm" controls width="600">
+</video>
+
+5. 存在问题：
+
+- 当前 scripted state machine 采用离散目标位姿切换，因此运动阶段存在一定的速度/加速度不连续。后续可通过 Cartesian trajectory interpolation / command filtering / actuator dynamic modeling 改进。该问题不影响当前 Pick-and-Place 可行性验证，因此留待 Sim2Real 阶段进一步处理
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
