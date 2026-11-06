@@ -1,15 +1,19 @@
 
 
-# 日志
-*.logs
-
-
+# 日志和输出
+logs/
+outputs/
+未经验证/
 
 # vscode环境
-*.vscode
+.vscode/
 
 # 大文件 / 生成物
 IsaacLab/
+
+# Python 缓存文件
+__pycache__/
+*.pyc
 g1_learning/*.usd
 g1_learning/*.txt
 g1_learning/*.log

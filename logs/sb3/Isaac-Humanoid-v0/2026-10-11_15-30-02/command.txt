@@ -1,1 +1,0 @@
-python /home/l/isaac_space_01/IsaacLab/scripts/reinforcement_learning/sb3/train.py --task=Isaac-Humanoid-v0 --num_env=4

@@ -17,6 +17,7 @@ LEBAI_LM3_LMG90_CFG = ArticulationCfg(
 
     spawn=sim_utils.UsdFileCfg(
         usd_path=str(LM3_LMG90_USD_PATH),
+        activate_contact_sensors=True,
     ),
 
     init_state=ArticulationCfg.InitialStateCfg(
@@ -32,12 +33,12 @@ LEBAI_LM3_LMG90_CFG = ArticulationCfg(
             "joint_6": 0.0,
 
             # gripper
-            "gripper_r_joint1": 0.0,
-            "gripper_r_joint2": 0.0,
-            "gripper_r_joint_finger": 0.0,
-            "gripper_l_joint1": 0.0,
-            "gripper_l_joint2": 0.0,
-            "gripper_l_joint_finger": 0.0,
+            "gripper_r_joint1": 1.0,
+            "gripper_r_joint2": -1.0,
+            "gripper_r_joint_finger": -1.0,
+            "gripper_l_joint1": 1.0,
+            "gripper_l_joint2": -1.0,
+            "gripper_l_joint_finger": -1.0,
         },
     ),
 

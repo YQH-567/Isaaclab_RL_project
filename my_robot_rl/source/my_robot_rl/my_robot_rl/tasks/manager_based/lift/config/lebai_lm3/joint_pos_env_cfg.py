@@ -20,6 +20,7 @@ from my_robot_rl.tasks.manager_based.lift.lift_env_cfg import LiftEnvCfg
 from isaaclab.markers.config import FRAME_MARKER_CFG  # isort: skip
 from my_robot_rl.assets.lebai_lm3_lmg90 import LEBAI_LM3_LMG90_CFG  # isort: skip
 
+from isaaclab.sensors import ContactSensorCfg
 
 @configclass
 class LebaiCubeLiftEnvCfg(LiftEnvCfg):
@@ -34,14 +35,31 @@ class LebaiCubeLiftEnvCfg(LiftEnvCfg):
         self.actions.arm_action = mdp.JointPositionActionCfg(
             asset_name="robot", joint_names=["joint_[1-6]"], scale=0.5, use_default_offset=True
         )
-        self.actions.gripper_action = mdp.BinaryJointPositionActionCfg(
+
+        # 这是用原本的manager-based的gripper动作配置，如果用ik的话什么的需要换回来这个版本
+        # self.actions.gripper_action = mdp.BinaryJointPositionActionCfg(
+        #     asset_name="robot",
+        #     joint_names=["gripper_r_joint1"],
+        #     open_command_expr={"gripper_r_joint1": 1.0},  #弧度制
+        #     close_command_expr={"gripper_r_joint1": 0.0},
+        # )
+
+        # 这是用乐白新加的带距离门控的gripper动作配置
+        self.actions.gripper_action = mdp.GatedGripperActionCfg(
             asset_name="robot",
             joint_names=["gripper_r_joint1"],
-            open_command_expr={"gripper_r_joint1": 1.0},  #弧度制
+            open_command_expr={"gripper_r_joint1": 1.0},
             close_command_expr={"gripper_r_joint1": 0.0},
+            close_distance=0.02,
         )
+        
+        
+        
         # Set the body name for the end effector
         self.commands.object_pose.body_name = "gripper_base_link"
+
+        #启用机器人刚体触觉：
+        self.scene.robot.spawn.activate_contact_sensors = True
 
         # Set Cube as object  设置小方块
         self.scene.object = RigidObjectCfg(

@@ -21,6 +21,10 @@ from isaaclab.sim.spawners.from_files.from_files_cfg import GroundPlaneCfg, UsdF
 from isaaclab.utils import configclass
 from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR
 
+
+from isaaclab.sensors import ContactSensorCfg
+
+
 from . import mdp
 
 ##
@@ -62,7 +66,26 @@ class ObjectTableSceneCfg(InteractiveSceneCfg):
         spawn=sim_utils.DomeLightCfg(color=(0.75, 0.75, 0.75), intensity=3000.0),
     )
 
+    # 相当于加手指触觉传感器
+    left_finger_contact = ContactSensorCfg(
+        prim_path=(
+            "{ENV_REGEX_NS}/Robot/lmg90_gripper_inertial_stable/"
+            "gripper/gripper_l_link_finger"
+        ),
+        update_period=0.0,
+        filter_prim_paths_expr=["{ENV_REGEX_NS}/Object"],
+        debug_vis=True,
+    )
 
+    right_finger_contact = ContactSensorCfg(
+        prim_path=(
+            "{ENV_REGEX_NS}/Robot/lmg90_gripper_inertial_stable/"
+            "gripper/gripper_r_link_finger"
+        ),
+        update_period=0.0,
+        filter_prim_paths_expr=["{ENV_REGEX_NS}/Object"],
+        debug_vis=True,
+    )
 ##
 # MDP settings
 ##
@@ -79,7 +102,7 @@ class CommandsCfg:
         debug_vis=True,
         ranges=mdp.UniformPoseCommandCfg.Ranges(
             #pos_x=(0.2, 0.35), pos_y=(-0.25, 0.25), pos_z=(0.1, 0.35), roll=(0.0, 0.0), pitch=(0.0, 0.0), yaw=(0.0, 0.0)
-            pos_x=(0.3, 0.3), pos_y=(-0.2, -0.2), pos_z=(0.2, 0.2), roll=(0.0, 0.0), pitch=(0.0, 0.0), yaw=(0.0, 0.0)    #这里是抬起的目标点，目前我固定一个点
+            pos_x=(0.3, 0.3), pos_y=(-0.1, -0.1), pos_z=(0.2, 0.2), roll=(0.0, 0.0), pitch=(0.0, 0.0), yaw=(0.0, 0.0)    #这里是抬起的目标点，目前我固定一个点
         ),
     )
 
@@ -94,18 +117,18 @@ class ActionsCfg:
 
 
 @configclass
-class ObservationsCfg:
+class ObservationsCfg:    #从这里看你的输入是几维
     """Observation specifications for the MDP."""
-
+    
     @configclass
     class PolicyCfg(ObsGroup):
         """Observations for policy group."""
 
-        joint_pos = ObsTerm(func=mdp.joint_pos_rel)
-        joint_vel = ObsTerm(func=mdp.joint_vel_rel)
-        object_position = ObsTerm(func=mdp.object_position_in_robot_root_frame)
-        target_object_position = ObsTerm(func=mdp.generated_commands, params={"command_name": "object_pose"})
-        actions = ObsTerm(func=mdp.last_action)
+        joint_pos = ObsTerm(func=mdp.joint_pos_rel)   #[2.12]
+        joint_vel = ObsTerm(func=mdp.joint_vel_rel)     #[2.12]
+        object_position = ObsTerm(func=mdp.object_position_in_robot_root_frame)     #[2.3]
+        target_object_position = ObsTerm(func=mdp.generated_commands, params={"command_name": "object_pose"})  #[2.7]
+        actions = ObsTerm(func=mdp.last_action)  #[2.7]
 
         def __post_init__(self):
             self.enable_corruption = True
@@ -125,40 +148,278 @@ class EventCfg:
         func=mdp.reset_root_state_uniform,
         mode="reset",
         params={
-            "pose_range": {"x": (-0.1, 0.1), "y": (-0.25, 0.25), "z": (0.0, 0.0)},
+            #"pose_range": {"x": (-0.1, 0.1), "y": (-0.25, 0.25), "z": (0.0, 0.0)},
+            "pose_range": {"x": (0.0, 0.0), "y": (0.0, 0.0), "z": (0.0, 0.0)},
             "velocity_range": {},
             "asset_cfg": SceneEntityCfg("object", body_names="Object"),
         },
     )
 
 
+# @configclass
+# class RewardsCfg:
+#     """Reward terms for the MDP."""
+
+#     reaching_object = RewTerm(func=mdp.object_ee_distance, params={"std": 0.1}, weight=1.0)
+#     #原本weight为15.0
+#     lifting_object = RewTerm(func=mdp.object_is_lifted, params={"minimal_height": 0.10}, weight=15.0)
+#     #原本weight为16.0
+#     object_goal_tracking = RewTerm(
+#         func=mdp.object_goal_distance,
+#         params={"std": 0.3, "minimal_height": 0.10, "command_name": "object_pose"},
+#         weight=16.0,
+#     )
+#     #原本weight为5.0
+#     object_goal_tracking_fine_grained = RewTerm(
+#         func=mdp.object_goal_distance,
+#         params={"std": 0.05, "minimal_height": 0.10, "command_name": "object_pose"},
+#         weight=5.0,
+#     )
+
+#     # action penalty  原本的weight为-1e-4
+#     action_rate = RewTerm(func=mdp.action_rate_l2, weight=-1e-4)
+
+#     joint_vel = RewTerm(
+#         func=mdp.joint_vel_l2,
+#         weight=-1e-4,
+#         params={"asset_cfg": SceneEntityCfg("robot")},
+#     )
+
+
+# @configclass
+# class RewardsCfg:
+#     """Lebai LM3 + LMG90 grasp and lift rewards."""
+
+#     # Actual TCP frame reaching
+#     reaching_object = RewTerm(
+#         func=mdp.lebai_tcp_object_distance,
+#         params={"std": 0.08},
+#         weight=3.0,
+#     )  #原本是1.0
+
+#     # Geometric enclosure
+#     gripper_enclosure = RewTerm(
+#         func=mdp.lebai_finger_enclosure,
+#         params={
+#             "left_tip_cfg": SceneEntityCfg(
+#                 "robot", body_names="gripper_l_link_finger"
+#             ),
+#             "right_tip_cfg": SceneEntityCfg(
+#                 "robot", body_names="gripper_r_link_finger"
+#             ),
+#         },
+#         weight=2.0,
+#     )
+
+#     # Keep open while aligning
+#     gripper_open_enclosure = RewTerm(
+#         func=mdp.lebai_gripper_open_enclosure,
+#         params={
+#             "left_tip_cfg": SceneEntityCfg(
+#                 "robot", body_names="gripper_l_link_finger"
+#             ),
+#             "right_tip_cfg": SceneEntityCfg(
+#                 "robot", body_names="gripper_r_link_finger"
+#             ),
+#         },
+#         weight=0.0,
+#     )  #原本是0.2
+
+#     # Close when properly enclosed
+#     gripper_close_when_enclosed = RewTerm(
+#         func=mdp.lebai_gripper_close_when_enclosed,
+#         params={
+#             "left_tip_cfg": SceneEntityCfg(
+#                 "robot", body_names="gripper_l_link_finger"
+#             ),
+#             "right_tip_cfg": SceneEntityCfg(
+#                 "robot", body_names="gripper_r_link_finger"
+#             ),
+#         },
+#         weight=0.0,
+#     )  #原本是0.8  0.0
+
+#     # Do not close too early
+#     premature_close = RewTerm(
+#         func=mdp.lebai_premature_close,
+#         params={
+#             "left_tip_cfg": SceneEntityCfg(
+#                 "robot", body_names="gripper_l_link_finger"
+#             ),
+#             "right_tip_cfg": SceneEntityCfg(
+#                 "robot", body_names="gripper_r_link_finger"
+#             ),
+#         },
+#         #weight=-0.8,
+#         weight=0.0 #暂时取消这个惩罚，它可能在夹爪正确接触、闭合后依然产生负值
+#     )
+
+#     # Actual bilateral contact
+#     grasp_contact = RewTerm(
+#         func=mdp.lebai_bilateral_grasp,
+#         weight=5.0,
+#     )   #原本是4.0  
+
+#     single_contact = RewTerm(
+#         func=mdp.lebai_single_contact_penalty,
+#         weight=0.0,
+#     )# 原本是-0.2
+
+#     # Continuous lift progress
+#     lift_progress = RewTerm(
+#         func=mdp.lebai_lift_progress,
+#         params={
+#             "rest_z": 0.055,
+#             "target_lift": 0.10,
+#         },
+#         weight=6.0,
+#     )  #原本是8.0
+
+#     # Stable lifting success
+#     lifting_object = RewTerm(
+#         func=mdp.lebai_stable_lift,
+#         params={
+#             "rest_z": 0.055,
+#             "min_lift": 0.04,
+#             "max_object_speed": 0.15,
+#         },
+#         weight=120.0,
+#     )  #原本是16.0
+
+#     # Target tracking after grasp and lift
+#     object_goal_tracking = RewTerm(
+#         func=mdp.lebai_object_goal_distance,
+#         params={
+#             "std": 0.3,
+#             "min_lift": 0.04,
+#             "rest_z": 0.055,
+#         },
+#         weight=8.0,
+#     )#原本是8.0,从来没有抓上过，先改0.0吧 0.0
+
+#     object_goal_tracking_fine_grained = RewTerm(
+#         func=mdp.lebai_object_goal_distance,
+#         params={
+#             "std": 0.05,
+#             "min_lift": 0.04,
+#             "rest_z": 0.055,
+#         },
+#         weight=2.0,
+#     )#这个也是，原来是2.0,先改0.0吧  0.0
+
+#     # Only regularize arm motion
+#     action_rate = RewTerm(
+#         func=mdp.lebai_arm_action_rate_l2,
+#         weight=-1e-4,
+#     )
+
+#     joint_vel = RewTerm(
+#         func=mdp.joint_vel_l2,
+#         weight=-1e-4,
+#         params={
+#             "asset_cfg": SceneEntityCfg(
+#                 "robot",
+#                 joint_names=["joint_[1-6]"],
+#             )
+#         },
+#     )
+
+#reward V3
 @configclass
 class RewardsCfg:
-    """Reward terms for the MDP."""
+    """LM3 + LMG90: Reach -> Grasp -> Lift."""
 
-    reaching_object = RewTerm(func=mdp.object_ee_distance, params={"std": 0.1}, weight=1.0)
-
-    lifting_object = RewTerm(func=mdp.object_is_lifted, params={"minimal_height": 0.04}, weight=15.0)
-
-    object_goal_tracking = RewTerm(
-        func=mdp.object_goal_distance,
-        params={"std": 0.3, "minimal_height": 0.04, "command_name": "object_pose"},
-        weight=16.0,
+    # 1. TCP approaching the cube
+    reaching_object = RewTerm(
+        func=mdp.lebai_tcp_object_distance,
+        params={"std": 0.15},
+        weight=3.0,
     )
 
-    object_goal_tracking_fine_grained = RewTerm(
-        func=mdp.object_goal_distance,
-        params={"std": 0.05, "minimal_height": 0.04, "command_name": "object_pose"},
+    # 2. Finger geometry alignment
+    gripper_enclosure = RewTerm(
+        func=mdp.lebai_finger_enclosure,
+        params={
+            "left_tip_cfg": SceneEntityCfg(
+                "robot",
+                body_names=["gripper_l_link_finger"],
+            ),
+            "right_tip_cfg": SceneEntityCfg(
+                "robot",
+                body_names=["gripper_r_link_finger"],
+            ),
+        },
+        weight=2.0,
+    )
+
+    # 3. Real bilateral finger-object contact
+    grasp_contact = RewTerm(
+        func=mdp.lebai_bilateral_grasp,
+        params={"threshold": 0.5},
         weight=5.0,
     )
 
-    # action penalty
-    action_rate = RewTerm(func=mdp.action_rate_l2, weight=-1e-4)
+    # 4. Continuous object lift
+    lift_progress = RewTerm(
+        func=mdp.lebai_lift_progress,
+        params={
+            "rest_z": 0.055,
+            "target_lift": 0.10,
+            "contact_threshold": 0.5,
+        },
+        weight=3.0,
+    )# 记录一下权重变化8.0 
 
+    # 5. Stable lifted object
+    lifting_object = RewTerm(
+        func=mdp.lebai_stable_lift,
+        params={
+            "rest_z": 0.055,
+            "min_lift": 0.05,
+            "max_object_speed": 0.15,
+            "contact_threshold": 0.5,
+        },
+        weight=16.0,
+    )
+    # 6. 开始增加抬升到目标点的奖励
+    object_goal_tracking = RewTerm(
+    func=mdp.lebai_goal_tracking,
+    params={
+        "command_name": "object_pose",
+        "std": 0.15,
+        "min_lift": 0.02,
+        "rest_z": 0.021,  # 按当前场景实测值修正
+    },
+    weight=12.0,
+)  #记录一下权重变化4.0
+
+    # 7.开始增加Target tracking after grasp and lift
+    object_goal_tracking_fine_grained = RewTerm(
+        func=mdp.lebai_object_goal_distance,
+        params={
+            "std": 0.3,
+            "min_lift": 0.04,
+            "rest_z": 0.055,
+        },
+        weight=8.0,
+    )#原本是8.0
+
+    # Arm action smoothness
+    action_rate = RewTerm(
+        func=mdp.lebai_arm_action_rate_l2,
+        weight=-1e-4,
+    )
+
+    # Arm joint velocity only
     joint_vel = RewTerm(
         func=mdp.joint_vel_l2,
+        params={
+            "asset_cfg": SceneEntityCfg(
+                "robot",
+                joint_names=["joint_[1-6]"],
+            ),
+        },
         weight=-1e-4,
-        params={"asset_cfg": SceneEntityCfg("robot")},
     )
 
 
@@ -176,13 +437,14 @@ class TerminationsCfg:
 @configclass
 class CurriculumCfg:
     """Curriculum terms for the MDP."""
+    #  原本这里的权重是10000步之后变为-1e-1
 
     action_rate = CurrTerm(
-        func=mdp.modify_reward_weight, params={"term_name": "action_rate", "weight": -1e-1, "num_steps": 10000}
+        func=mdp.modify_reward_weight, params={"term_name": "action_rate", "weight": -1e-3, "num_steps": 10000}   
     )
 
     joint_vel = CurrTerm(
-        func=mdp.modify_reward_weight, params={"term_name": "joint_vel", "weight": -1e-1, "num_steps": 10000}
+        func=mdp.modify_reward_weight, params={"term_name": "joint_vel", "weight": -1e-3, "num_steps": 10000}
     )
 
 
@@ -211,7 +473,7 @@ class LiftEnvCfg(ManagerBasedRLEnvCfg):
         """Post initialization."""
         # general settings
         self.decimation = 2
-        self.episode_length_s = 10.0
+        self.episode_length_s = 5.0   #状态机需要10秒
         # simulation settings
         self.sim.dt = 0.01  # 100Hz
         self.sim.render_interval = self.decimation

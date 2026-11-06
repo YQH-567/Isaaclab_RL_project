@@ -5,10 +5,27 @@
     "python.analysis.extraPaths": [
         "./IsaacLab/source/isaaclab",
         "./IsaacLab/source/isaaclab_assets",
-        "./my_robot_rl"
+        "./my_robot_rl",
+        "./my_robot_rl/source",
+        "./my_robot_rl/source/my_robot_rl/my_robot_rl/tasks",
+        "./IsaacLab/source/isaaclab",
+        "./IsaacLab/source/isaaclab_rl",
+        "./IsaacLab/source/isaaclab_tasks"
     ],
     "urdf-visualizer.packages": {
         "robots": "/home/l/isaac_space_01/my_robot_rl/assets/robots",
         "grapper": "/home/l/isaac_space_01/my_robot_rl/assets/grapper",
-    }
+    },
+
+
+    "python.autoComplete.extraPaths": [
+        "./my_robot_rl/source",
+        "./IsaacLab/source/isaaclab",
+        "./IsaacLab/source/isaaclab_rl",
+        "./IsaacLab/source/isaaclab_tasks",
+        "./my_robot_rl/source/my_robot_rl/my_robot_rl/tasks",
+    ],
+    "python.defaultInterpreterPath": "/home/l/miniconda3/envs/env_isaaclab/bin/python",
+
 }
+

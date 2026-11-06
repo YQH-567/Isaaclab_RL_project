@@ -10,3 +10,8 @@ from isaaclab.envs.mdp import *  # noqa: F401, F403
 from .observations import *  # noqa: F401, F403
 from .rewards import *  # noqa: F401, F403
 from .terminations import *  # noqa: F401, F403
+
+# 这是针对乐白新加的奖励函数设计和手指接触几何计算
+from .lebai_rewards import *
+from .geometry import *
+from .gated_gripper_action import GatedGripperActionCfg

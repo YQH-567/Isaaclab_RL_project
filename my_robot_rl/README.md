@@ -484,7 +484,7 @@ q_{des}
 
 ### 3.10 新的 manipulation state machine 的起点
 
-1. Lebai微分IK实现lift任务原因
+#### 1. Lebai微分IK实现lift任务原因
 
 - IK可以验证机械臂本体和环境设置是否出现问题
     
@@ -502,7 +502,7 @@ q_{des}
 
     一开始把奖励函数设计成“靠近 IK 算出来的轨迹就加分”，等 RL 学会了，再慢慢撤回这个辅助，让它自己探索。
 
-2. 实现微分IK的lift的过程
+#### 2. 实现微分IK的lift的过程
 
     代码文件：
     [实现的主要代码](./source/my_robot_rl/my_robot_rl/tasks/manager_based/lift/config/lebai_lm3/scripted_lift_lm3_without_RL.py)
@@ -523,11 +523,11 @@ q_{des}
     
     状态机内部设置理解，这里代码注释很详细，仔细查看主要代码
 
-3. 最终实现效果：
+#### 3. 最终实现效果：
 
 <video src="./docx/IK_lift乐白效果.webm" controls width="600"></video>
 
-4. 怎么给状态机加状态
+#### 4. 怎么给状态机加状态
 
 代码文件：
 [给lift状态增加place放置和done的状态](./source/my_robot_rl/my_robot_rl/tasks/manager_based/lift/config/lebai_lm3/scripted_lift_and_place_lm3_without_RL.py)
@@ -563,26 +563,81 @@ q_{des}
 <video src="./docx/IK_lift_place乐白效果.webm" controls width="600">
 </video>
 
-5. 存在问题：
+#### 5. 存在问题：
 
 - 当前 scripted state machine 采用离散目标位姿切换，因此运动阶段存在一定的速度/加速度不连续。后续可通过 Cartesian trajectory interpolation / command filtering / actuator dynamic modeling 改进。该问题不影响当前 Pick-and-Place 可行性验证，因此留待 Sim2Real 阶段进一步处理
 
+- `my_robot_rl/source/my_robot_rl/my_robot_rl/tasks/manager_based/lift/config/lebai_lm3/ik_rel_env_cfg.py`  这个文件暂时没理会，主要是相对运动的设置，也就是`use_relative_mode=True`,能用这个`scale=0.5`
 
 
 
+### 3.11 lebai完整机械臂 lift的manager训练PPO
+
+#### 1. observation观测值[num_envs,41]
+
+$$ q_{\mathrm{rel}}=q_{\mathrm{current}}-q_{\mathrm{default}} $$
+
+joint_vel_rel 则是相对于默认关节速度的偏移量,relative是相对的意思
+
+这里41维度的定义分别是`joint_pos_rel`,`joint_vel_rel`,`object_position_in_robot_root_frame`,`generated_commands`,`last_action`,详细定义代码看代码跳转
+
+| 维度 | 实际含义 |
+|---|---|
+| 0–11 | 机械臂及夹爪相对默认位置的关节位置 |
+| 12–23 | 机械臂及夹爪相对默认速度的关节速度 |
+| 24–26 | 方块相对于机器人基座的位置 |
+| 27–33 | 指定机器人刚体的目标位姿 |
+| 34–40 | 最近一次输入 Action Manager 的动作 |
+
+#### 2. 奖励函数设置问题
+- 先使用官方案例的lift实现的效果和问题
+
+- 新的奖励函数设置
+
+- 中间遇到的问题和调式方法
+- - 在到达目标点之前提前闭合
+- - 到达之后不抓取
+尝试微调已经能实现reach的pt文件：
+
+```python
+python scripts/skrl/train.py \
+    --task Isaac-Lift-Cube-Lebai-v0 \
+    --num_envs 4096 \
+    --headless \
+    --checkpoint /你的实际路径/checkpoints/agent_xxx.pt \
+    --max_iterations 1000
+```
 
 
 
+#### 3. 怎么添加断点调式，特别是条件断点
+举例获取状态机准备闭合夹爪的姿态是怎样的
+设置条件断点：
+在 actions = pick_sm.compute(...) 附近设置普通断点（F9）。
+右键点击红色断点，选择 编辑断点（Edit Breakpoint）。
+选择 表达式（Expression），即你截图里已经打开的输入框。
+输入下面这个条件并按 Enter：
+`env.unwrapped.episode_length_buf[0].item() == round(4.9 / env.unwrapped.step_dt)`
 
+```python
 
+robot = env.unwrapped.scene["robot"]
 
+arm_ids, _ = robot.find_joints(
+    [f"joint_{i}" for i in range(1, 7)],
+    preserve_order=True,
+)
 
+q_pregrasp = robot.data.joint_pos[0, arm_ids].clone()
+q_home = robot.data.default_joint_pos[0, arm_ids]
 
-
-
-
-
-
+print("Pre-grasp:", q_pregrasp.tolist())
+print("Home:", q_home.tolist())
+print("Difference:", (q_pregrasp - q_home).tolist())
+Pre-grasp: [2.835221290588379, -1.1763299703598022, 1.999188780784607, -2.389353036880493, -1.5708030462265015, -1.8771638870239258]
+Home: [3.130000114440918, -1.9700000286102295, 1.7100000381469727, -1.2899999618530273, -1.6200000047683716, 0.0]
+Difference: [-0.29477882385253906, 0.7936700582504272, 0.2891887426376343, -1.0993530750274658, 0.04919695854187012, -1.8771638870239258]
+```
 
 
 
@@ -591,11 +646,22 @@ q_{des}
 
 
     当前 IK MD 收尾、commit。  ->ok
-    看一遍官方 lift_cube_sm.py，重点理解 state transition，不要急着照抄。
-    新建 scripted_lift_lm3.py，自己实现 PRE_GRASP → APPROACH → CLOSE → LIFT。
-    固定 cube 成功率稳定后，加 TRANSPORT → PLACE → OPEN。
-    把它整理成 scripted_pick_place_lm3.py。
-    去读官方 manager_based/manipulation/lift，自己迁移 LM3 + LMG90。
-    跑 PPO Lift。
+    看一遍官方 lift_cube_sm.py，重点理解 state transition，不要急着照抄。 ->ok
+    新建 scripted_lift_lm3.py，自己实现 PRE_GRASP → APPROACH → CLOSE → LIFT。  ->ok
+    固定 cube 成功率稳定后，加 TRANSPORT → PLACE → OPEN。  -> ok
+    把它整理成 scripted_pick_place_lm3.py。  ->ok
+    去读官方 manager_based/manipulation/lift，自己迁移 LM3 + LMG90 ->ok但效果不好
+    跑 PPO Lift。  ->ok但效果不好
     随机化 cube 初始位置、质量、摩擦等。
     部署到你旁边那台真实 LM3。
+
+            我建议按照以下顺序学习：
+        内容	需要掌握的程度
+        Actor / Critic	能解释各自的作用
+        Rollout Buffer	明白采集了哪些数据
+        Advantage / GAE	能解释为什么需要优势估计
+        PPO Clipped Objective	能解释概率比和 clip 的作用
+        Entropy	理解探索与利用
+        Value Loss	理解 Critic 如何学习
+        Mini-batch / Epoch	理解数据如何重复利用
+        SKRL 配置	能够独立修改和判断参数影响

@@ -22,4 +22,10 @@
     Assembler           汇编器
     state transition            状态转换
     warp            编织
-    
+    binary              二进制
+    sanity check            完整性检查
+    console         控制台
+    integrated          集成
+    indicate            表明
+    reversed            逆转
+    stochastic          随机

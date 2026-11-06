@@ -50,7 +50,7 @@ agent:
   mini_batches: 4
   discount_factor: 0.99
   lambda: 0.95
-  learning_rate: 1.0e-04
+  learning_rate: 1.0e-03   #原本是1.0e-04
   learning_rate_scheduler: KLAdaptiveLR
   learning_rate_scheduler_kwargs:
     kl_threshold: 0.01
@@ -81,5 +81,5 @@ agent:
 # https://skrl.readthedocs.io/en/latest/api/trainers/sequential.html
 trainer:
   class: SequentialTrainer
-  timesteps: 36000
+  timesteps: 50000    #原本是36000
   environment_info: log
