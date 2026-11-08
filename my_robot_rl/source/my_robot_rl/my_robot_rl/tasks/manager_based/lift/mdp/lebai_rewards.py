@@ -6,16 +6,157 @@ from .geometry import (
     RIGHT_GRASP_OFFSET,
     get_finger_point_w,
 )
-
-
-
-
-
-
-
 import torch
 from isaaclab.utils.math import subtract_frame_transforms
 
+
+# V6: goal reaching after bilateral grasp
+
+def _v6_goal_status(
+    env, command_name="object_pose", contact_threshold=0.5
+):
+    robot = env.scene["robot"]
+    obj = env.scene["object"]
+
+    # Cube and goal positions in robot root frame
+    cube_pos_b, _ = subtract_frame_transforms(
+        robot.data.root_pos_w,
+        robot.data.root_quat_w,
+        obj.data.root_pos_w[:, :3],
+    )
+    goal_pos_b = env.command_manager.get_command(
+        command_name
+    )[:, :3]
+
+    distance = torch.linalg.vector_norm(
+        cube_pos_b - goal_pos_b, dim=-1
+    )
+
+    # Reuse the existing bilateral contact detection
+    _, _, left, right = _grasp_contacts(
+        env, threshold=contact_threshold
+    )
+
+    return distance, left & right
+
+
+# def lebai_v6_goal_reach(env, std=0.20):
+#     """Dense goal reward, enabled by bilateral contact."""
+#     distance, grasped = _v6_goal_status(env)
+#     return grasped.float() * torch.exp(-distance / std)
+
+#我换成线性衰减的方式，看看行不行
+def lebai_v6_goal_reach(env, std=0.20, tolerance=0.05):
+    distance, grasped = _v6_goal_status(env)
+    
+    # 方案1：线性惩罚，离得越远扣得越狠，逼它必须靠近
+    # 距离 0 时扣 0 分，距离 1 米时扣 1 分
+    distance_penalty = -distance
+    
+    # # 方案2：如果进入了 tolerance (比如 5 厘米内)，直接给一个超级大的完成奖励
+    # success_bonus = (distance < tolerance).float() * 2.0
+    
+    # # 方案3：如果夹住了，给基础分；没夹住，啥也没有
+    # grasp_reward = grasped.float() * 1.0
+    
+    #return grasp_reward + distance_penalty + success_bonus
+    return distance_penalty
+
+
+def lebai_v6_goal_reached(env, goal_threshold=0.01):
+    """Success condition. Shape: (num_envs,), dtype: bool."""
+    distance, grasped = _v6_goal_status(env)
+    return grasped & (distance < goal_threshold)
+
+
+def lebai_v6_success_bonus(env, goal_threshold=0.05):
+    """One-time terminal success bonus."""
+    success = lebai_v6_goal_reached(env, goal_threshold)
+    return success.float() / env.step_dt
+
+
+
+
+def lebai_transport_xy(
+    env,
+    command_name="object_pose",
+    std=0.30,
+    rest_z=0.021,
+    min_lift=0.03,
+):
+    robot = env.scene["robot"]
+    obj = env.scene["object"]
+
+    # Cube position in robot root frame
+    cube_pos_b, _ = subtract_frame_transforms(
+        robot.data.root_pos_w,
+        robot.data.root_quat_w,
+        obj.data.root_pos_w[:, :3],
+    )
+
+    goal_pos_b = env.command_manager.get_command(
+        command_name
+    )[:, :3]
+
+    # Horizontal distance to the goal
+    d_xy = torch.linalg.vector_norm(
+        cube_pos_b[:, :2] - goal_pos_b[:, :2],
+        dim=-1,
+    )
+
+    # Enable after the cube has been lifted
+    lifted = _lift_delta(obj, env, rest_z) > min_lift
+
+    return lifted.float() * (
+        1.0 - torch.tanh(d_xy / std)
+    )
+
+
+
+def lebai_goal_reached(
+    env,
+    command_name="object_pose",
+    goal_threshold=0.05,
+    rest_z=0.021,
+    min_lift=0.04,
+    max_object_speed=0.20,
+    contact_threshold=0.5,
+    max_tcp_distance=0.08,
+):
+    """Per-step goal-region reward for a slow, grasped, lifted object.
+
+    This is NOT an episode termination: it rewards maintaining the goal region.
+    Returns a tensor of shape (num_envs,).
+    """
+    robot = env.scene["robot"]
+    obj = env.scene["object"]
+
+    object_pos_b, _ = subtract_frame_transforms(
+        robot.data.root_pos_w,
+        robot.data.root_quat_w,
+        obj.data.root_pos_w[:, :3],
+    )
+    goal_pos_b = env.command_manager.get_command(command_name)[:, :3]
+    d_xyz = torch.linalg.vector_norm(object_pos_b - goal_pos_b, dim=-1)
+
+    lift_height = _lift_delta(obj, env, rest_z)
+    object_speed = torch.linalg.vector_norm(obj.data.root_lin_vel_w, dim=-1)
+    _, _, left, right = _grasp_contacts(env, threshold=contact_threshold)
+    tcp_distance = torch.linalg.vector_norm(
+        env.scene["ee_frame"].data.target_pos_w[:, 0, :]
+        - obj.data.root_pos_w[:, :3],
+        dim=-1,
+    )
+
+    reached = (
+        (d_xyz < goal_threshold)
+        & (lift_height > min_lift)
+        & (object_speed < max_object_speed)
+        & left
+        & right
+        & (tcp_distance < max_tcp_distance)
+    )
+    return reached.float()
 
 def lebai_goal_tracking(
     env,
@@ -51,11 +192,25 @@ def lebai_goal_tracking(
         - env.scene.env_origins[:, 2]
     )
 
+    # lift_height = object_z - rest_z
+    # lifted = lift_height > min_lift
+
+    # # Only reward target tracking after lifting.
+    # return lifted.float() * torch.exp(-distance / std)
     lift_height = object_z - rest_z
     lifted = lift_height > min_lift
 
-    # Only reward target tracking after lifting.
-    return lifted.float() * torch.exp(-distance / std)
+    _, _, left, right = _grasp_contacts(
+        env,
+        threshold=0.5,
+    )
+
+    valid_transport = lifted & left & right
+
+    return (
+        valid_transport.float()
+        * torch.exp(-distance / std)
+    )
 
 
 def _get_object_tcp(env, object_cfg):
@@ -292,7 +447,7 @@ def lebai_single_contact_penalty(
     )
 
 
-def _lift_delta(obj, env, rest_z=0.055):
+def _lift_delta(obj, env, rest_z=0.021):
     """Object lift relative to its resting height, not world origin."""
 
     object_z_local = (
@@ -307,7 +462,7 @@ def _lift_delta(obj, env, rest_z=0.055):
 
 def lebai_lift_progress(
     env,
-    rest_z=0.055,
+    rest_z=0.021,
     target_lift=0.10,
     left_sensor_name="left_finger_contact",
     right_sensor_name="right_finger_contact",
@@ -345,9 +500,9 @@ def lebai_lift_progress(
 
 def lebai_stable_lift(
     env,
-    rest_z=0.055,
+    rest_z=0.021,
     min_lift=0.04,
-    max_object_speed=0.15,
+    max_object_speed=10.0,
     left_sensor_name="left_finger_contact",
     right_sensor_name="right_finger_contact",
     contact_threshold=0.5,
@@ -388,7 +543,7 @@ def lebai_object_goal_distance(
     env,
     std=0.3,
     min_lift=0.04,
-    rest_z=0.055,
+    rest_z=0.021,
     command_name="object_pose",
     left_sensor_name="left_finger_contact",
     right_sensor_name="right_finger_contact",

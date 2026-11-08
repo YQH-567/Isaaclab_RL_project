@@ -5,8 +5,8 @@ logs/
 outputs/
 未经验证/
 
-# vscode环境
-.vscode/
+# # vscode环境
+# .vscode/
 
 # 大文件 / 生成物
 IsaacLab/

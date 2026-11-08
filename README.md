@@ -1,7 +1,16 @@
-# RL从入门到入门
+# RL从不知名机械臂CAD到isaaclab的RL训练到实机部署
 
-## 1. gi_learning中的基础学习第二章和my_robot_rl中的第三章
+## 1. 快速启动与项目简介
 
-## 2. 怎么安装
+### 1.项目内容介绍
 
-## 3. 快速启动# Isaaclab_RL_project
+### 2.环境安装
+
+### 3.目前项目完成benchmark效果
+
+## 2. g1_learning内部大致内容介绍
+
+## 3. my_robot_rl仿真流程
+
+## 4. lebai_real_deploy真机部署效果介绍
+

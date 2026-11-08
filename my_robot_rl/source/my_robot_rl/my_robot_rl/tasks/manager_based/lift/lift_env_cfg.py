@@ -74,7 +74,7 @@ class ObjectTableSceneCfg(InteractiveSceneCfg):
         ),
         update_period=0.0,
         filter_prim_paths_expr=["{ENV_REGEX_NS}/Object"],
-        debug_vis=True,
+        debug_vis=False,
     )
 
     right_finger_contact = ContactSensorCfg(
@@ -84,7 +84,7 @@ class ObjectTableSceneCfg(InteractiveSceneCfg):
         ),
         update_period=0.0,
         filter_prim_paths_expr=["{ENV_REGEX_NS}/Object"],
-        debug_vis=True,
+        debug_vis=False,
     )
 ##
 # MDP settings
@@ -99,7 +99,7 @@ class CommandsCfg:
         asset_name="robot",
         body_name=MISSING,  # will be set by agent env cfg
         resampling_time_range=(5.0, 5.0),
-        debug_vis=True,
+        debug_vis=False,
         ranges=mdp.UniformPoseCommandCfg.Ranges(
             #pos_x=(0.2, 0.35), pos_y=(-0.25, 0.25), pos_z=(0.1, 0.35), roll=(0.0, 0.0), pitch=(0.0, 0.0), yaw=(0.0, 0.0)
             pos_x=(0.3, 0.3), pos_y=(-0.1, -0.1), pos_z=(0.2, 0.2), roll=(0.0, 0.0), pitch=(0.0, 0.0), yaw=(0.0, 0.0)    #这里是抬起的目标点，目前我固定一个点
@@ -324,99 +324,210 @@ class EventCfg:
 #         },
 #     )
 
-#reward V3
+# #reward V3和V4的区别主要是rest_z的值从0.055改为0.021，max_object_speed从0.15改为10.0，lifting_object的weight从16.0改为8.0，object_goal_tracking的weight从8.0改为12.0，object_goal_tracking_fine_grained的weight从8.0改为0.0
+# @configclass
+# class RewardsCfg:
+#     """LM3 + LMG90: Reach -> Grasp -> Lift."""
+
+#     # 1. TCP approaching the cube
+#     reaching_object = RewTerm(
+#         func=mdp.lebai_tcp_object_distance,
+#         params={"std": 0.15},
+#         weight=3.0,
+#     )
+
+#     # 2. Finger geometry alignment
+#     gripper_enclosure = RewTerm(
+#         func=mdp.lebai_finger_enclosure,
+#         params={
+#             "left_tip_cfg": SceneEntityCfg(
+#                 "robot",
+#                 body_names=["gripper_l_link_finger"],
+#             ),
+#             "right_tip_cfg": SceneEntityCfg(
+#                 "robot",
+#                 body_names=["gripper_r_link_finger"],
+#             ),
+#         },
+#         weight=2.0,
+#     )
+
+#     # 3. Real bilateral finger-object contact
+#     grasp_contact = RewTerm(
+#         func=mdp.lebai_bilateral_grasp,
+#         params={"threshold": 0.5},
+#         weight=5.0,
+#     )
+
+#     # 4. Continuous object lift
+#     lift_progress = RewTerm(
+#         func=mdp.lebai_lift_progress,
+#         params={
+#             "rest_z": 0.021,
+#             "target_lift": 0.10,
+#             "contact_threshold": 0.5,
+#         },
+#         weight=3.0,
+#     )# 记录一下权重变化8.0 
+
+#     # 5. Stable lifted object
+#     lifting_object = RewTerm(
+#         func=mdp.lebai_stable_lift,
+#         params={
+#             "rest_z": 0.021,
+#             "min_lift": 0.05,
+#             "max_object_speed": 10.0,
+#             "contact_threshold": 0.5,
+#         },
+#         weight=8.0,#记录一下权重变化16.0
+#     )
+#     # 6. 开始增加抬升到目标点的奖励
+#     object_goal_tracking = RewTerm(
+#     func=mdp.lebai_goal_tracking,
+#     params={
+#         "command_name": "object_pose",
+#         "std": 0.15,
+#         "min_lift": 0.02,
+#         "rest_z": 0.021,  # 按当前场景实测值修正
+#     },
+#     weight=12.0,
+# )  #记录一下权重变化4.0
+
+#     # 7.开始增加Target tracking after grasp and lift
+#     object_goal_tracking_fine_grained = RewTerm(
+#         func=mdp.lebai_object_goal_distance,
+#         params={
+#             "std": 0.3,
+#             "min_lift": 0.04,
+#             "rest_z": 0.021,
+#         },
+#         weight=0.0,
+#     )#原本是8.0  0.0
+
+#     # Arm action smoothness
+#     action_rate = RewTerm(
+#         func=mdp.lebai_arm_action_rate_l2,
+#         weight=-1e-4,
+#     )
+
+#     # Arm joint velocity only
+#     joint_vel = RewTerm(
+#         func=mdp.joint_vel_l2,
+#         params={
+#             "asset_cfg": SceneEntityCfg(
+#                 "robot",
+#                 joint_names=["joint_[1-6]"],
+#             ),
+#         },
+#         weight=-1e-4,
+#     )
+
+
+# reward V5版本和V6版本，这个V5其实跟没写是一样的，效果出来一模一样
 @configclass
 class RewardsCfg:
-    """LM3 + LMG90: Reach -> Grasp -> Lift."""
+    """V5: reach -> bilateral grasp -> lift -> horizontal carry -> goal."""
 
-    # 1. TCP approaching the cube
     reaching_object = RewTerm(
         func=mdp.lebai_tcp_object_distance,
         params={"std": 0.15},
         weight=3.0,
     )
 
-    # 2. Finger geometry alignment
     gripper_enclosure = RewTerm(
         func=mdp.lebai_finger_enclosure,
         params={
-            "left_tip_cfg": SceneEntityCfg(
-                "robot",
-                body_names=["gripper_l_link_finger"],
-            ),
-            "right_tip_cfg": SceneEntityCfg(
-                "robot",
-                body_names=["gripper_r_link_finger"],
-            ),
+            "left_tip_cfg": SceneEntityCfg("robot", body_names=["gripper_l_link_finger"]),
+            "right_tip_cfg": SceneEntityCfg("robot", body_names=["gripper_r_link_finger"]),
         },
         weight=2.0,
     )
 
-    # 3. Real bilateral finger-object contact
     grasp_contact = RewTerm(
         func=mdp.lebai_bilateral_grasp,
         params={"threshold": 0.5},
         weight=5.0,
     )
 
-    # 4. Continuous object lift
-    lift_progress = RewTerm(
-        func=mdp.lebai_lift_progress,
-        params={
-            "rest_z": 0.055,
-            "target_lift": 0.10,
-            "contact_threshold": 0.5,
-        },
-        weight=3.0,
-    )# 记录一下权重变化8.0 
+    # lift_progress = RewTerm(
+    #     func=mdp.lebai_lift_progress,
+    #     params={"rest_z": 0.021, "target_lift": 0.10, "contact_threshold": 0.5},
+    #     weight=3.0,
+    # )
 
-    # 5. Stable lifted object
-    lifting_object = RewTerm(
-        func=mdp.lebai_stable_lift,
-        params={
-            "rest_z": 0.055,
-            "min_lift": 0.05,
-            "max_object_speed": 0.15,
-            "contact_threshold": 0.5,
-        },
+    # lifting_object = RewTerm(
+    #     func=mdp.lebai_stable_lift,
+    #     params={
+    #         "rest_z": 0.021,
+    #         "min_lift": 0.05,
+    #         "max_object_speed": 0.60,  # Candidate, not 10.0 m/s.
+    #         "contact_threshold": 0.5,
+    #     },
+    #     weight=8.0,
+    # )
+
+    #这个是V5版本的，可以说这两个函数，计算函数很复杂，且，没有任何作用
+    # transport_xy = RewTerm(   
+    #     func=mdp.lebai_transport_xy,
+    #     params={
+    #         "command_name": "object_pose",
+    #         "std": 0.20,
+    #         "rest_z": 0.021,  # 按当前场景实测值修正
+    #         "min_lift": 0.02,
+    #     },
+    #     weight=12.0,
+    # )
+
+    # goal_reached = RewTerm(
+    #     func=mdp.lebai_goal_reached,
+    #     params={
+    #         "command_name": "object_pose",
+    #         "goal_threshold": 0.05,
+    #         "rest_z": 0.021,  # 按当前场景实测值修正
+    #         "min_lift": 0.04,
+    #         "max_object_speed": 0.20,
+    #         "contact_threshold": 0.5,
+    #         "max_tcp_distance": 0.08,
+    #     },
+    #     weight=30.0,
+    # )
+
+    #V6: reward for carrying cube toward the goal
+    # v6_goal_reach = RewTerm(
+    #     func=mdp.lebai_v6_goal_reach,
+    #     params={"std": 0.20},
+    #     weight=20.0,
+    # )
+
+    # V6: one-time reward when reaching the goal
+    v6_goal_success = RewTerm(
+        func=mdp.lebai_v6_success_bonus,
+        params={"goal_threshold": 0.01},
+        weight=1500.0,
+    )
+
+    object_goal_tracking = RewTerm(
+        func=mdp.object_goal_distance,
+        params={"std": 0.3, "minimal_height": 0.04, "command_name": "object_pose"},
         weight=16.0,
     )
-    # 6. 开始增加抬升到目标点的奖励
-    object_goal_tracking = RewTerm(
-    func=mdp.lebai_goal_tracking,
-    params={
-        "command_name": "object_pose",
-        "std": 0.15,
-        "min_lift": 0.02,
-        "rest_z": 0.021,  # 按当前场景实测值修正
-    },
-    weight=12.0,
-)  #记录一下权重变化4.0
 
-    # 7.开始增加Target tracking after grasp and lift
     object_goal_tracking_fine_grained = RewTerm(
-        func=mdp.lebai_object_goal_distance,
-        params={
-            "std": 0.3,
-            "min_lift": 0.04,
-            "rest_z": 0.055,
-        },
-        weight=8.0,
-    )#原本是8.0
+        func=mdp.object_goal_distance,
+        params={"std": 0.05, "minimal_height": 0.04, "command_name": "object_pose"},
+        weight=5.0,
+    )
 
-    # Arm action smoothness
     action_rate = RewTerm(
         func=mdp.lebai_arm_action_rate_l2,
         weight=-1e-4,
     )
 
-    # Arm joint velocity only
     joint_vel = RewTerm(
         func=mdp.joint_vel_l2,
         params={
             "asset_cfg": SceneEntityCfg(
-                "robot",
-                joint_names=["joint_[1-6]"],
+                "robot", joint_names=["joint_[1-6]"]
             ),
         },
         weight=-1e-4,
@@ -433,6 +544,12 @@ class TerminationsCfg:
         func=mdp.root_height_below_minimum, params={"minimum_height": -0.02, "asset_cfg": SceneEntityCfg("object")}
     )
 
+    goal_success = DoneTerm(
+        func=mdp.lebai_v6_goal_reached,
+        params={"goal_threshold": 0.01},
+        time_out=False,
+    )    
+
 
 @configclass
 class CurriculumCfg:
@@ -440,11 +557,11 @@ class CurriculumCfg:
     #  原本这里的权重是10000步之后变为-1e-1
 
     action_rate = CurrTerm(
-        func=mdp.modify_reward_weight, params={"term_name": "action_rate", "weight": -1e-3, "num_steps": 10000}   
+        func=mdp.modify_reward_weight, params={"term_name": "action_rate", "weight": -1e-1, "num_steps": 10000}   
     )
 
     joint_vel = CurrTerm(
-        func=mdp.modify_reward_weight, params={"term_name": "joint_vel", "weight": -1e-3, "num_steps": 10000}
+        func=mdp.modify_reward_weight, params={"term_name": "joint_vel", "weight": -1e-1, "num_steps": 10000}
     )
 
 
