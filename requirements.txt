@@ -1,0 +1,10 @@
+# Training-project extras for Isaaclab_RL_project.
+# IMPORTANT: Install a compatible Isaac Sim + Isaac Lab first.
+# This is NOT a standalone Isaac Lab / Isaac Sim / CUDA environment lock.
+# Do NOT use this file for the standalone robot-deployment environment;
+# use lebai_real_deploy/requirements.txt there, and install torch separately.
+# Run from the repository root: python -m pip install -r requirements.txt
+
+toml
+tensorboard
+-e ./my_robot_rl/source/my_robot_rl

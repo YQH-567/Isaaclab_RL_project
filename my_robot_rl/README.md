@@ -706,6 +706,10 @@ python scripts/skrl/train.py \
 <img src="./docx/lift抖动不够平稳版本.gif" controls width="400">
 </img>
 
+- 这个视频对应的tensorboard奖励曲线(我好像没写怎么分析这些曲线……)
+
+<img src="./docx/有点抖动版本的lift的tensorboard效果图.png" width=600>
+
 
 #### 3. 怎么添加断点调式，特别是条件断点
 举例获取状态机准备闭合夹爪的姿态是怎样的
