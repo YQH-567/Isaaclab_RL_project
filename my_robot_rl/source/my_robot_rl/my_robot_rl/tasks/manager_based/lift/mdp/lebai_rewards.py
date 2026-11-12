@@ -10,6 +10,18 @@ import torch
 from isaaclab.utils.math import subtract_frame_transforms
 
 
+def lebai_goal_slowdown(env, std=0.06, speed_scale=0.20):
+    distance, grasped = _v6_goal_status(env)
+
+    obj = env.scene["object"]
+    speed = torch.linalg.vector_norm(
+        obj.data.root_lin_vel_w, dim=-1
+    )
+
+    return grasped.float() * torch.exp(
+        -distance / std
+    ) / (1.0 + speed / speed_scale)
+
 # V6: goal reaching after bilateral grasp
 
 def _v6_goal_status(
@@ -63,17 +75,43 @@ def lebai_v6_goal_reach(env, std=0.20, tolerance=0.05):
     return distance_penalty
 
 
-def lebai_v6_goal_reached(env, goal_threshold=0.01):
-    """Success condition. Shape: (num_envs,), dtype: bool."""
+# def lebai_v6_goal_reached(env, goal_threshold=0.01):
+#     """Success condition. Shape: (num_envs,), dtype: bool."""
+#     distance, grasped = _v6_goal_status(env)
+#     return grasped & (distance < goal_threshold)
+
+
+def lebai_v7_goal_reached(env, goal_threshold=0.01):
     distance, grasped = _v6_goal_status(env)
     return grasped & (distance < goal_threshold)
 
 
-def lebai_v6_success_bonus(env, goal_threshold=0.05):
-    """One-time terminal success bonus."""
-    success = lebai_v6_goal_reached(env, goal_threshold)
-    return success.float() / env.step_dt
 
+# def lebai_v6_success_bonus(env, goal_threshold=0.05):
+#     """One-time terminal success bonus."""
+#     success = lebai_v6_goal_reached(env, goal_threshold)
+#     return success.float() / env.step_dt
+
+
+def lebai_v7_success_bonus(
+    env, goal_threshold=0.01, speed_std=0.5
+):
+    distance, grasped = _v6_goal_status(env)
+
+    reached = grasped & (distance < goal_threshold)
+
+    obj = env.scene["object"]
+    speed = torch.linalg.vector_norm(
+        obj.data.root_lin_vel_w, dim=-1
+    )
+
+    speed_bonus = torch.exp(-speed / speed_std)
+
+    return (
+        reached.float()
+        * (1.0 + 0.4 * speed_bonus)
+        / env.step_dt
+    )
 
 
 

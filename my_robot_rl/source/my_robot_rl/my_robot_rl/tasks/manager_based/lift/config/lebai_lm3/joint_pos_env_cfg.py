@@ -36,7 +36,7 @@ class LebaiCubeLiftEnvCfg(LiftEnvCfg):
             asset_name="robot", joint_names=["joint_[1-6]"], scale=0.5, use_default_offset=True
         )
 
-        # 这是用原本的manager-based的gripper动作配置，如果用ik的话什么的需要换回来这个版本
+        # #这是用原本的manager-based的gripper动作配置，如果用ik的话什么的需要换回来这个版本
         # self.actions.gripper_action = mdp.BinaryJointPositionActionCfg(
         #     asset_name="robot",
         #     joint_names=["gripper_r_joint1"],

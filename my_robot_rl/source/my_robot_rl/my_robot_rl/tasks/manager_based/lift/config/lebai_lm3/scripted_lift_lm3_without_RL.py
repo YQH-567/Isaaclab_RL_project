@@ -78,7 +78,7 @@ class PickSmWaitTime:
 
     REST = wp.constant(0.2)
     APPROACH_ABOVE_OBJECT = wp.constant(0.8)  # 原本是0.5
-    APPROACH_OBJECT = wp.constant(10)    # 原本是0.6
+    APPROACH_OBJECT = wp.constant(0.6)    # 原本是0.6
     GRASP_OBJECT = wp.constant(1.0)   # 👈 这里就是闭合夹爪的等待时间（秒）原本是0.3秒
     LIFT_OBJECT = wp.constant(1.0)   # 原本是1.0秒
     DONE = wp.constant(0.3)   #  完成状态保持0.3秒  同时我让夹抓打开了

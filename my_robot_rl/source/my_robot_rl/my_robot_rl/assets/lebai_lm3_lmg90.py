@@ -9,7 +9,8 @@ PROJECT_ROOT = Path(__file__).resolve().parents[4]
 
 LM3_LMG90_USD_PATH = (
     PROJECT_ROOT
-    / "assets/robots/lm3/usd/lebai_lm3_lmg90_gripper.usd"
+    #/ "assets/robots/lm3/usd/lebai_lm3_lmg90_gripper.usd"
+    / "assets/robots/lm3/usd/lebai_lm3_lmg90_new1112.usd"
 )
 
 
