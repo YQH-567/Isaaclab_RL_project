@@ -4,6 +4,7 @@
 logs/
 outputs/
 未经验证/
+act_manipulation/
 
 # # vscode环境
 # .vscode/

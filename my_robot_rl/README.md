@@ -13,7 +13,6 @@ my_robot_rl/
                 usd/
         grapper
             lmg90/
-
     scripts/
         tools/ 模型转换与检查
         tests/ 关节控制、复位测试
@@ -29,12 +28,8 @@ my_robot_rl/
  **2. 模型本体urdf预览和isaaclab导入**
 - meshes文件路径设置和插件预览：`package://robots/lm3/meshes/visual/base_link.stl`
 安装好Vscode里的URDF-Preview可以进行机器人预览，查看关节转动范围/Visual/Collision/坐标系等等，如下图：
+<img src="./docx/vscode插件预览URDF.png" width=400>
 
-<p align="center">
-<img src="./docx/vscode插件预览URDF.png" width=500>
-<br>
-<sub>vscode插件预览URDF</sub>
-</p>
 
 - 插件使用和配置文件路径编写
 
@@ -75,7 +70,7 @@ my_robot_rl/
 URDF从solidworks导出并且按照3.1放在对应的位置，（预览拓展能打开查看验证的话那路径什么的应该没有很大问题）,然后启动空模板`./isaaclab.sh -s`,然后左上角点击`importer`导入URDF文件，记得选固定,看图的选择：
 
 <p>
-<img src="./docx/isaaclab的URDF导入选择小tips.png" width=500>
+<img src="./docx/isaaclab的URDF导入选择小tips.png" width=400>
 </p>
 
 - ① 点击 Play
@@ -90,10 +85,7 @@ URDF从solidworks导出并且按照3.1放在对应的位置，（预览拓展能
 应当能够看到 joint_1 到 joint_6 六个可动关节，并读取相应关节状态。
 这里还需要注意的是。如果Physics Inspector没有刷新出来，看看你是不是有root_joint,root_joint有没有`Articulation Root`,如下图，特别注意右边的参数
 
-<p>
-<img src="./docx/isaac中的Physics Inspector检查.png" width=600>
-</p>
-
+<img src="./docx/isaac中的Physics Inspector检查.png" width=400>
 
 #### 2. 六个关节参数调节及其依据
 
@@ -118,7 +110,7 @@ URDF从solidworks导出并且按照3.1放在对应的位置，（预览拓展能
 
     <span style="color:red; background:yellow;">
     阻尼比在 0.6～0.8 左右确实是经典二阶控制系统中经常采用的设计参考，它可以在响应速度和超调之间取得比较好的折中。
-    但机器人关节控制器没有“ζ = 0.7 一定最优”这回事。
+    但机器人关节控制器没有“ζ = 0.7 一定最优”这回事我说实话最好全部过阻尼不要任何超调。
 
     例如：
     - 如果你需要快速响应，允许少量超调，可能选择较小阻尼。
@@ -129,13 +121,7 @@ URDF从solidworks导出并且按照3.1放在对应的位置，（预览拓展能
 
 - 以下是isaaclab的调节图，分别是kd=1和kd=5的，2和3和4我就不放了，放在了docx里面：
 
-    <p>
-    <img src="./docx/lebai_joint_1的Kd=1阶跃响应图.png" width=500>
-    </p>
-
-    <p>
-    <img src="./docx/lebai_joint_1的Kd=5阶跃响应图.png" width=500>
-    </p>
+<img src="./docx/lebai_joint_1的Kd=1阶跃响应图.png" width=300>  <img src="./docx/lebai_joint_1的Kd=5阶跃响应图.png" width=300>
 
 - 正弦响应调节 
 
@@ -146,9 +132,7 @@ URDF从solidworks导出并且按照3.1放在对应的位置，（预览拓展能
     对比 Observed Joint 是否跟上目标，记录相位滞后和幅值误差。
     低频跟踪稳定后，再尝试 Period=2s，保持其他参数不变。
 
-<p>
-<img src="./docx/isaaclab_joint_6的正弦响应图.png" width=500>
-</p>
+<img src="./docx/isaaclab_joint_6的正弦响应图.png" width=400>
 
 - 验证全部关节的流程：
 
@@ -162,38 +146,21 @@ URDF从solidworks导出并且按照3.1放在对应的位置，（预览拓展能
     | 6 | 编写 lebai_lm3.py 和 Isaac Lab 控制测试 |
     | 7 | 完成多关节运动、Reset 和稳定性验证 |
 
-或者换一种简单流程图：
-
-            1. 静态检查
-                |
-                v
-            2. 阶跃响应
-                |
-                v
-            3. 正弦响应
-                |
-                v
-            4. 多关节运动
-                |
-                v
-            5. 不同负载
+或者简单点就：1. 静态检查 2. 阶跃响应 3. 正弦响应 4. 多关节运动 5. 不同负载
 
 - 总结来说：
 
 阶跃响应看什么？
 1. 稳态误差
 2. 超调
-3. 调节时间
+3. 调节时间(调节时间很重要！一般你就调0.3左右把，0.4也行)
 4. 振荡 (突然给目标，系统是否稳定)
 
 正弦响应测试什么？
 1. 相位滞后
 
-    例如：
-    目标：
-
+    例如：目标：
     $$q_d=10\sin(t)$$
-
     实际：
     $$q=10\sin(t-30^\circ)$$
     说明：
@@ -201,31 +168,11 @@ URDF从solidworks导出并且按照3.1放在对应的位置，（预览拓展能
 
 2. 幅值衰减
 
-    目标：10°
-    实际：8°
-    说明：
-    高频跟踪能力不足。
+    目标：10° 实际：8°说明：高频跟踪能力不足。
 
-3. 高频稳定性
-
-    机器人运动不是只有阶跃。
-    RL里面：
-    action不断变化：
-    类似：
-```python
-0.1s:
-目标1
-
-0.2s:
-目标2
-
-0.3s:
-目标3
-```
+3. 高频稳定性   机器人运动不是只有阶跃。
 
 所以动态跟踪能力重要。
-
-
 ### 3.3 cfg文件测试和articulation设置测试  
 
  1. 设置好PD之后在scripts/tests下写测试文件 三个实验
@@ -240,20 +187,11 @@ URDF从solidworks导出并且按照3.1放在对应的位置，（预览拓展能
  - 参考第一版的PD，得到的1轴和3轴的误差图，都不是渐渐逼近
     [PD第一版参数和第二版参数在文件下面](./docx/机器人关节PD控制器调参与验证.md)
 
-    正常状态的误差图：
-    <p>
-    <img src="./docx/joint_5的error图片合格版本.png" width =400>
-    </p>
-
-    因为PD参数欠阻尼调节过于振荡，以至于1轴error图片如图：
-    <p>
-    <img src="./docx/joint_1的error图片不合格版本.png" width =400>
-    </p>
+    正常状态的误差图如图左图,因为PD参数欠阻尼调节过于振荡，以至于1轴error图片如图右图：
+    <img src="./docx/joint_5的error图片合格版本.png" width =300>  <img src="./docx/joint_1的error图片不合格版本.png" width =300>
 
     因为最大力矩限制太小导致无法到达目标点，甚至往上抬不起来后落地了都的3轴error图片：
-    <p>
-    <img src="./docx/joint_3的error图片不合格版本.png" width =400>
-    </p>
+    <img src="./docx/joint_3的error图片不合格版本.png" width =300>
 
     最终经过我的调整，然后全部轴一起运动后的误差图(2轴其实不是刚开始的最大受力状态的话，曲线会更好，比如从-40运动到-50)，所以说不是每个都能调得很好的曲线的，而且最终目的是RL训练，所以基本合格就可以：
     <p>
@@ -278,7 +216,6 @@ $$
 +\boldsymbol g(\boldsymbol q)+\boldsymbol\tau_f+\boldsymbol\tau_{\mathrm{ext}}
 $$
 
-
 ### 3.4 PPO YAML 与环境的连接  ManagerBased 环境构建,暂时以reach实验为例子
 
 1. 记得本身自己`./isaaclab.sh -n`时的选项，是有manager的
@@ -298,7 +235,6 @@ $$
     write_interval: auto
     checkpoint_interval: auto
 ```
-
 
 2. 理解manager工作流修改乐白的`joint_pos_env_cfg.py`
 - 具体改哪里
@@ -331,24 +267,20 @@ python /home/l/isaac_space_01/my_robot_rl/scripts/skrl/evaluate.py --task= --che
     Gym 注册 → 环境配置 → skrl agent 配置 → train.py → rollout → PPO 更新 → checkpoint。
 </span>
 
+### 3.5 实验结果与诊断(reach我这里不分析了，放在lift上，分析思路是一样的)
     
-解释 Actor、Critic、GAE、clip 和学习率，结合 YAML 给出实际配置。
-
-### 3.5 实验结果与诊断
-    
-    TensorBoard、末端到目标点距离、成功率、episode length、训练配置与 checkpoint 回放。
+TensorBoard、末端到目标点距离、成功率、episode length、训练配置与 checkpoint 回放。
 
 ### 3.6 抓取与 Sim2Real 扩展,怎么生成笔记本部署需要的checkpoint,初始训练和实机部署的checkpoint的区别
 
-
-    在 Reach 稳定以后加入抓取任务，再根据进度增加随机化与 Residual RL。
+在 Reach 稳定以后加入抓取任务，再根据进度增加随机化与 Residual RL。
 
 查看显卡状态：
 `watch -n 1 nvidia-smi`
 
 ### 3.7 加爪实现流程
 
-#### 1. 导入流程与3.1 差不多，因为mimic导致的坑如下：####
+#### 1. 导入流程与3.1 差不多，因为mimic导致的坑如下：
 
 - 先是urdf速度设置全部为1不让其为0,然后导入后，`先不开启physics inspector` 
 - 然后设置到`gripper_r_joint1`的PD参数不让它为0,同时设置`gripper_l_joint1`的mimic参考轴，因为导入进去就它参考轴是没有正确识别的，
@@ -375,26 +307,19 @@ $$\theta = \frac{\pi \cdot amplitude}{300}$$
 然后六个关节满足：
 $$
 \begin{aligned}
-q_{r1}&=\theta\\
-q_{r2}&=-\theta\\
-q_{rf}&=-\theta\\
-q_{l1}&=\theta\\
-q_{l2}&=-\theta\\
-q_{lf}&=-\theta
-\end{aligned}
+q_{r1}&=\theta\\q_{r2}&=-\theta\\q_{rf}&=-\theta\\q_{l1}&=\theta\\q_{l2}&=-\theta\\q_{lf}&=-\theta\end{aligned}
 $$
 amplitude=100 对应主关节 π/3 rad = 60°
 
 lmg90单独显示图：
-<p>
+
 <img src="./docx/lmg90夹爪单独显示图.png" width=400>
-</p>
 
 #### 3. 注意审查URDF有无漏洞（本次加爪本体制作时间长的具体原因）####
 
-    <span style="color:red; background:yellow;">
-    没检查URDF的惯性缺失！导致点开play夹爪四处乱跑！！
-    </span>
+<span style="color:red; background:yellow;">
+没检查URDF的惯性缺失！导致点开play夹爪四处乱跑！！
+</span>
 
 ```xml
     <inertial>
@@ -407,10 +332,7 @@ lmg90单独显示图：
     </inertial>
 ```
 - 不过好在也解决了这个问题，驱动轴关节误差如下，没有什么大问题：
-
-<p>
 <img src="./docx/加爪驱动关节误差（已合格）.png" width=400>
-</p>
 
 [测试的代码在这里:test_lmg90_gripper_articulation.py](./scripts/tests/test_lmg90_gripper_articulation.py)
 
@@ -423,10 +345,7 @@ lmg90单独显示图：
 
 测试结果：这里测了3轴和夹爪驱动轴
 
-<p>
-<img src="./docx/机械臂和夹抓缝合后的测试误差图.png" width=400>
-</p>
-
+<img src="./docx/机械臂和夹抓缝合后的测试误差图.png" width=300>
 
 ### 3.9 机械臂IK验证轨迹与模型
 参考官网案例：https://isaac-sim.github.io/IsaacLab/main/source/how-to/run_diff_ik.html?
@@ -437,20 +356,8 @@ lmg90单独显示图：
 [对齐位姿显示微分IK](./source/my_robot_rl/my_robot_rl/tasks/manager_based/lift/config/lebai_lm3/run_diff_if_without_RL.py)
 
 1. Differential IK 控制链路。
-$$ x_{goal}
-\rightarrow
-\texttt{set\_command}
-\rightarrow
-(x_{ee},J,q)
-\rightarrow
-\texttt{compute}
-\rightarrow
-q_{des}
-\rightarrow
-\text{PD}
-\rightarrow
-\text{PhysX}
-\rightarrow
+$$ x_{goal}\rightarrow\texttt{set\_command}\rightarrow(x_{ee},J,q)\rightarrow\texttt{compute}\rightarrow
+q_{des}\rightarrow\text{PD}\rightarrow\text{PhysX}\rightarrow
 新的(x_{ee},J,q)$$
 
 - 配置并创建 Differential IK controller。
@@ -458,29 +365,22 @@ q_{des}
 - 每一步读取新的末端状态、Jacobian 和关节位置，重新 compute() 出新的关节目标，再交给关节 PD。
 - reset 时同时 reset 机器人状态、controller 和 command。
 
-#### 这几个去看我写在代码里面的详细注释 ####
-
+#### 这几个去看我写在代码里面的详细注释 
+1. 这个1是什么来着……
 2. pose / position。
 3. absolute / relative command。
 4. Jacobian 的作用与数据维度。
 5. fixed-base 下 body_id - 1 的原因。
 6. compute() 输入输出。
 7. controller reset。
-
-<span style="color:red; background:yellow;">
 8. gripper_r_link_finger 作为 EE 导致姿态目标不可达的问题。
 
 - 改为 gripper_base_link 后目标正常可达。
-
 - PD 是底层 tracking 问题，不能解决 task-space 不可达问题。
 
-</span>
+#### 这里展示一下[x, y, z, qw, qx, qy, qz]对齐的效果会如何：
 
-#### 这里展示一下[x, y, z, qw, qx, qy, qz]对齐的效果会如何：####
-
-<p>
 <img src="./docx/机械臂微分IK验证图.png" width=400>
-</p>
 
 ### 3.10 新的 manipulation state machine 的起点
 
@@ -504,8 +404,8 @@ q_{des}
 
 #### 2. 实现微分IK的lift的过程
 
-    代码文件：
-    [实现的主要代码](./source/my_robot_rl/my_robot_rl/tasks/manager_based/lift/config/lebai_lm3/scripted_lift_lm3_without_RL.py)
+代码文件：
+[实现的主要代码](./source/my_robot_rl/my_robot_rl/tasks/manager_based/lift/config/lebai_lm3/scripted_lift_lm3_without_RL.py)
 
 - 从main函数开始看，更改环境名字，并且查看环境配置的框架哪些地方需要更改
     
@@ -561,11 +461,9 @@ q_{des}
 - 增加之后的效果 ：
 
 <img src="./docx/IK_lift_place乐白效果.gif" controls width="400">
-</img>
-
 #### 5. 存在问题和模仿学习和模型微调预备
 
-- 当前 scripted state machine 采用离散目标位姿切换，因此运动阶段存在一定的速度/加速度不连续。后续可通过 Cartesian trajectory interpolation / command filtering / actuator dynamic modeling 改进。该问题不影响当前 Pick-and-Place 可行性验证，因此留待 Sim2Real 阶段进一步处理
+- 当前 scripted state machine 采用离散目标位姿切换，因此运动阶段存在一定的速度/加速度不连续。后续可通过 Cartesian trajectory interpolation / command filtering / actuator dynamic modeling 改进。该问题不影响当前 Pick-and-Place 可行性验证，因此留待 Sim2Real 阶段进一步处理(距离我写下这个存在问题应该过去很久了，现在我回来告诉我自己，这个问题很严重，这里不单单是因为离散的点，还有就是我之前调节PD的时候设置的响应速度太快了！！！！导致后面的lift一直没成功，现在成功了，谢天谢地，我在后面补个丝滑视频，当然我ACT也写了这个，去那里看也行)
 
 - `my_robot_rl/source/my_robot_rl/my_robot_rl/tasks/manager_based/lift/config/lebai_lm3/ik_rel_env_cfg.py`  这个文件暂时没理会，主要是相对运动的设置，也就是`use_relative_mode=True`,能用这个`scale=0.5`
 
@@ -702,16 +600,24 @@ python scripts/skrl/train.py \
 
 - 目前lift的效果：
 到目标点之后会抖动，而且速度其实太快了，还需要调整，但由于这个夹爪，其实这里不容易，官方案例训练一轮完全可以lift，但这个可能机械臂有这个mimic会比较难搞，还需要调整
-
-<img src="./docx/lift抖动不够平稳版本.gif" controls width="400">
-</img>
-
 - 这个视频对应的tensorboard奖励曲线(我好像没写怎么分析这些曲线……)
 
-<img src="./docx/有点抖动版本的lift的tensorboard效果图.png" width=600>
+<img src="./docx/lift抖动不够平稳版本.gif" controls width="400"> <img src="./docx/有点抖动版本的lift的tensorboard效果图.png" width=400>
 
+#### 3.调节PD让响应时间变长之后，不改变官方的奖励函数，也不加夹爪门控
+适当延长响应时间是有效果的，效果很显著,这里怎么分析这个结果呢，每一个奖励和惩罚的趋势都是基本正确的，每个奖励函数都用上了，没有曲线是0,但是机械臂因为一直抓取同一个位置的物体，然后机械臂发现，它踢开它，然后再去抓取，得到的奖励更多，虽然惩罚会多一点，但是总奖励还在增加，所以机械臂最后学会了把方块踢远再抓   这里的启动训练和评估的指令是：
 
-#### 3. 怎么添加断点调式，特别是条件断点
+```bash
+python /home/l/isaac_space_01/my_robot_rl/scripts/skrl/train.py --task=Isaac-Lift-Cube-LebaiNew-v0 --headless --num_envs=4096       #这是训练，num_envs可以自己调整根据自己情况
+
+tensorboard --logdir=/home/l/isaac_space_01/my_robot_rl/logs/skrl/lebaiNew_lift/2026-11-15_17-28-08_ppo_torch --port=6007  # tensorboard查看结果
+
+python /home/l/isaac_space_01/my_robot_rl/scripts/skrl/play.py --task=Isaac-Lift-Cube-LebaiNew-v0 --checkpoint=/home/l/isaac_space_01/my_robot_rl/logs/skrl/lebaiNew_lift/2026-11-15_17-28-08_ppo_torch/checkpoints/best_agent.pt --num_envs=2  #评估
+```
+
+<img src="./docx/修改PD之后固定方块的lift效果视频.gif" width=400> <img src="./docx/固定方块位置以及新PD机械臂tensor结果.png" width=350>
+
+#### 4. 怎么添加断点调式，特别是条件断点
 举例获取状态机准备闭合夹爪的姿态是怎样的
 设置条件断点：
 在 actions = pick_sm.compute(...) 附近设置普通断点（F9）。
@@ -720,27 +626,7 @@ python scripts/skrl/train.py \
 输入下面这个条件并按 Enter：
 `env.unwrapped.episode_length_buf[0].item() == round(4.9 / env.unwrapped.step_dt)`
 
-```python
-
-robot = env.unwrapped.scene["robot"]
-
-arm_ids, _ = robot.find_joints(
-    [f"joint_{i}" for i in range(1, 7)],
-    preserve_order=True,
-)
-
-q_pregrasp = robot.data.joint_pos[0, arm_ids].clone()
-q_home = robot.data.default_joint_pos[0, arm_ids]
-
-print("Pre-grasp:", q_pregrasp.tolist())
-print("Home:", q_home.tolist())
-print("Difference:", (q_pregrasp - q_home).tolist())
-#下面这个结果我删除后面那么多小数点，太占地方了
-Pre-grasp: [2.83, -1.17, 1.9, -2.38, -1.57, -1.87]
-Home: [3.13, -1.97, 1.71, -1.28, -1.62, 0.0]
-Difference: [-0.29, 0.79, 0.28, -1.09, 0.049, -1.87]
-```
-#### 加随机域化怎么做，为什么这么做
+### 3.12 加随机域化怎么做，为什么这么做
 
 | 实验目的 | 建议 iterations | 选择原因 |
 |---|---|---|

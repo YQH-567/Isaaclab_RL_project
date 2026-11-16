@@ -230,11 +230,11 @@ class TerminationsCfg:
         func=mdp.root_height_below_minimum, params={"minimum_height": -0.02, "asset_cfg": SceneEntityCfg("object")}
     )
 
-    goal_success = DoneTerm(
-        func=mdp.lebai_v7_goal_reached,
-        params={"goal_threshold": 0.01},
-        time_out=False,
-    )    
+    # goal_success = DoneTerm(
+    #     func=mdp.lebai_v7_goal_reached,
+    #     params={"goal_threshold": 0.01},
+    #     time_out=False,
+    # )    
 
 
 @configclass
@@ -275,8 +275,8 @@ class LiftEnvCfg(ManagerBasedRLEnvCfg):
     def __post_init__(self):
         """Post initialization."""
         # general settings
-        self.decimation = 2
-        self.episode_length_s = 5.0   #状态机需要10秒
+        self.decimation = 2      # 原本是2,50HZ
+        self.episode_length_s = 5.0   #place那个状态机需要10秒
         # simulation settings
         self.sim.dt = 0.01  # 100Hz
         self.sim.render_interval = self.decimation

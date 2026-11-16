@@ -36,7 +36,7 @@ class LebaiCubeLiftEnvCfg(LiftEnvCfg):
             asset_name="robot", joint_names=["joint_[1-6]"], scale=0.5, use_default_offset=True
         )
 
-        # #这是用原本的manager-based的gripper动作配置，如果用ik的话什么的需要换回来这个版本
+        # # #这是用原本的manager-based的gripper动作配置，如果用ik的话什么的需要换回来这个版本
         # self.actions.gripper_action = mdp.BinaryJointPositionActionCfg(
         #     asset_name="robot",
         #     joint_names=["gripper_r_joint1"],
@@ -44,7 +44,7 @@ class LebaiCubeLiftEnvCfg(LiftEnvCfg):
         #     close_command_expr={"gripper_r_joint1": 0.0},
         # )
 
-        # 这是用乐白新加的带距离门控的gripper动作配置
+        #这是用乐白新加的带距离门控的gripper动作配置
         self.actions.gripper_action = mdp.GatedGripperActionCfg(
             asset_name="robot",
             joint_names=["gripper_r_joint1"],
@@ -52,8 +52,6 @@ class LebaiCubeLiftEnvCfg(LiftEnvCfg):
             close_command_expr={"gripper_r_joint1": 0.0},
             close_distance=0.02,
         )
-        
-        
         
         # Set the body name for the end effector
         self.commands.object_pose.body_name = "gripper_base_link"
