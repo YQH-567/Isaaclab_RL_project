@@ -90,7 +90,8 @@
 - **目前效果：** ACT 在包含物体位置信息的配置下，Lift / Place 回放表现接近全部成功；**不提供仿真物体坐标**、仅使用视觉及机器人自身状态的版本，初步测试成功率约 **70%–80%**。完整统计、视频及消融实验结果可以跳转查看
 
 - **ACT 数据生成、训练、评估与视频直接查看：** 
-<img src="./my_robot_rl/docx/策略一次输出30步带方块相对位置效果图.gif" width=400>
+
+    <img src="./my_robot_rl/docx/策略一次输出30步带方块相对位置效果图.gif" width=400>
 
 
 ## 5. [lebai_initial_moveit_config：ROS 2 / MoveIt 2 与视觉感知](https://github.com/YQH-567/lebai_initial_moveit_config)
