@@ -11,6 +11,7 @@ LM3_LMG90_USD_PATH = (
     PROJECT_ROOT
     #/ "assets/robots/lm3/usd/lebai_lm3_lmg90_gripper.usd"
     / "assets/robots/lm3/usd/lebai_lm3_lmg90_new1112.usd"
+    #/ "assets/robots/lm3/usd/lebai_lm3_lmg90_new1113.usd" #这个版本的PD更软但是让机械臂学会了反复敲打方块让方块升起来
 )
 
 

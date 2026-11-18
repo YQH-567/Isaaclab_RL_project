@@ -188,9 +188,11 @@ URDF从solidworks导出并且按照3.1放在对应的位置，（预览拓展能
     [PD第一版参数和第二版参数在文件下面](./docx/机器人关节PD控制器调参与验证.md)
 
     正常状态的误差图如图左图,因为PD参数欠阻尼调节过于振荡，以至于1轴error图片如图右图：
+
     <img src="./docx/joint_5的error图片合格版本.png" width =300>  <img src="./docx/joint_1的error图片不合格版本.png" width =300>
 
     因为最大力矩限制太小导致无法到达目标点，甚至往上抬不起来后落地了都的3轴error图片：
+
     <img src="./docx/joint_3的error图片不合格版本.png" width =300>
 
     最终经过我的调整，然后全部轴一起运动后的误差图(2轴其实不是刚开始的最大受力状态的话，曲线会更好，比如从-40运动到-50)，所以说不是每个都能调得很好的曲线的，而且最终目的是RL训练，所以基本合格就可以：
@@ -617,7 +619,12 @@ python /home/l/isaac_space_01/my_robot_rl/scripts/skrl/play.py --task=Isaac-Lift
 
 <img src="./docx/修改PD之后固定方块的lift效果视频.gif" width=400> <img src="./docx/固定方块位置以及新PD机械臂tensor结果.png" width=350>
 
-#### 4. 怎么添加断点调式，特别是条件断点
+#### 4. 不使用课程学习惩罚的效果
+如果使用课程学习的10000步的惩罚，会导致机械臂产生逆反心理撞到，
+
+<img src="./docx/没有课程学习惩罚的liftNew效果.gif" width=400>
+
+#### 5. 怎么添加断点调式，特别是条件断点
 举例获取状态机准备闭合夹爪的姿态是怎样的
 设置条件断点：
 在 actions = pick_sm.compute(...) 附近设置普通断点（F9）。
