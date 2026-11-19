@@ -463,6 +463,7 @@ q_{des}\rightarrow\text{PD}\rightarrow\text{PhysX}\rightarrow
 - 增加之后的效果 ：
 
 <img src="./docx/IK_lift_place乐白效果.gif" controls width="400">
+
 #### 5. 存在问题和模仿学习和模型微调预备
 
 - 当前 scripted state machine 采用离散目标位姿切换，因此运动阶段存在一定的速度/加速度不连续。后续可通过 Cartesian trajectory interpolation / command filtering / actuator dynamic modeling 改进。该问题不影响当前 Pick-and-Place 可行性验证，因此留待 Sim2Real 阶段进一步处理(距离我写下这个存在问题应该过去很久了，现在我回来告诉我自己，这个问题很严重，这里不单单是因为离散的点，还有就是我之前调节PD的时候设置的响应速度太快了！！！！导致后面的lift一直没成功，现在成功了，谢天谢地，我在后面补个丝滑视频，当然我ACT也写了这个，去那里看也行)
