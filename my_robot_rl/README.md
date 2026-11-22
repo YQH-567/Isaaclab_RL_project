@@ -642,3 +642,8 @@ python /home/l/isaac_space_01/my_robot_rl/scripts/skrl/play.py --task=Isaac-Lift
 | 当前成功策略的平稳性微调 | 300 | 小幅调整，避免长训练破坏已有能力 |
 | 初步位置随机化 | 500 | 让策略适应更广的初始状态 |
 | 更大范围的随机化或从头训练 | 1000–1500 起 | 根据成功率是否收敛决定追加 |
+### 3.13 Lebai TrayPlace V1 固定场景（待物理验证）
+
+新增 Manager-Based 任务 `Isaac-Lebai-TrayPlace-v0`，复用 LiftNew 的 LM3+LMG90 USD、PD、mimic 及 7 维动作。场景含本地五块真实静态碰撞体料槽、工作台和长方体工件。本轮未训练 PPO，未修改旧任务或训练结果。
+
+文件清单、坐标/候选尺寸、1-env 静置与 IK、16-env reset、四壁碰撞测试和截图命令见 [TrayPlace V1 说明](TRAY_PLACE_V1.md)。当前会话缺少可用 NVIDIA 驱动，物理检查尚未实测，尺寸尚未最终确认。
